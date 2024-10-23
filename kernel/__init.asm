@@ -189,7 +189,7 @@ l_long_mode_setup:
 [BITS 64]
 l_long_mode_execution:
 
-    ;clear segment reg
+    ;reload segment reg
     MOV ax, 0
     MOV ss, ax
     MOV ds, ax
