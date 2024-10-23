@@ -33,7 +33,7 @@ void CursorPosition(int pos)
 void HelloBoot()
 {
     int i, len;
-	char boot[] = "Hello Boot! Greetings from C... lol:*";
+	char boot[] = "Hello Boot! Greetings from C... lol";
 
 	len = 0;
 	while (boot[len] != 0)
