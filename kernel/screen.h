@@ -13,7 +13,7 @@
 typedef struct _SCREEN
 {
     char c;
-    BYTE color;
+    BYTE  color;
 }SCREEN, *PSCREEN;
 #pragma pack(pop)
 
