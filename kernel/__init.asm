@@ -50,7 +50,7 @@ ASMEntryPoint:
     CALL l_paging_setup
     CALL l_long_mode_setup
 
-    LGDT [__GDT64]
+    LGDT [GDT64]
 
     JMP 8:l_long_mode_execution 
 
@@ -87,20 +87,20 @@ __enableSSE:                ;; enable SSE instructions (CR4.OSFXSR = 1)
 EXPORT2C ASMEntryPoint, __cli, __sti, __magic, __enableSSE
 
 align 0x1000
-__PML4_table:
+  PML4_table:
 	times 512 dq 0
-__PDP_table:
+  PDP_table:
 	times 512 dq 0
-__PD_table:
+  PD_table:
 	times 512 dq 0
-__PT_table:
+  PT_table:
     times 512 dq 0
-__PA_table:
+  PA_table:
     times 512 dq 0
 
-__GDT64:
-    .limit  dw  __GDT64_Table.end - __GDT64_Table - 1
-    .base   dd  __GDT64_Table
+GDT64:
+    .limit  dw  GDT64_Table.end - GDT64_Table - 1
+    .base   dd  GDT64_Table
 
 FLAT_DESCRIPTOR_CODE64  equ 0x00AF9A000000FFFF  ; Code: Execute/Read
 FLAT_DESCRIPTOR_DATA64  equ 0x00AF92000000FFFF  ; Data: Read/Write
@@ -109,7 +109,7 @@ FLAT_DESCRIPTOR_DATA32  equ 0x00CF92000000FFFF  ; Data: Read/Write
 FLAT_DESCRIPTOR_CODE16  equ 0x00009B000000FFFF  ; Code: Execute/Read, accessed
 FLAT_DESCRIPTOR_DATA16  equ 0x000093000000FFFF  ; Data: Read/Write, accessed
 
-__GDT64_Table:
+GDT64_Table:
     .null     dq 0                         ;  0
     .code64   dq FLAT_DESCRIPTOR_CODE64    ;  8
     .data64   dq FLAT_DESCRIPTOR_DATA64    ; 16
@@ -122,30 +122,30 @@ __GDT64_Table:
 ; Set up paging by linking tables and declaring pages
 l_paging_setup:
    
-	MOV eax, __PDP_table
+	MOV eax, PDP_table
 	OR eax, 0x11 
-	MOV [__PML4_table], eax
+	MOV [PML4_table], eax
 	
 	
-	MOV eax, __PD_table
+	MOV eax, PD_table
 	OR eax, 0x11  
-	MOV [__PDP_table], eax
+	MOV [PDP_table], eax
 	
 	
-	MOV eax, __PT_table
+	MOV eax, PT_table
 	OR eax, 0x11 
-	MOV [__PD_table], eax
+	MOV [PD_table], eax
 	
 	
-	MOV eax, __PA_table
+	MOV eax, PA_table
 	OR eax, 0x11 
-    MOV ecx, __PD_table
+    MOV ecx, PD_table
     ADD ecx, 0x8
 	MOV [ecx], eax
 
     MOV edx, 0;
     MOV ecx, 0 ; 
-    MOV esi, __PT_table 
+    MOV esi, PT_table 
 
     loop_pages:
 
@@ -158,7 +158,7 @@ l_paging_setup:
     INC ecx
     CMP ecx, 1024
 
-    JL loop_pages
+    JB loop_pages
 
     ret
 
@@ -169,7 +169,7 @@ l_long_mode_setup:
     MOV cr4, eax
 
     ;cr3 points to pml4 table
-	MOV eax, __PML4_table
+	MOV eax, PML4_table
 	MOV cr3, eax
 
     ;set lme bit in ia32_efer
