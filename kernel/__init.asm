@@ -12,6 +12,7 @@
 %endrep
 %endmacro
 
+
 ;; EXPORT TO C FUNCTIONS
 %macro EXPORT2C 1-*
 %rep  %0
@@ -119,6 +120,8 @@ GDT64_Table:
     .data16   dq FLAT_DESCRIPTOR_DATA16    ; 48 
     .end:
 
+
+
 ; Set up paging by linking tables and declaring pages
 l_paging_setup:
    
@@ -187,6 +190,10 @@ l_long_mode_setup:
 
 
 [BITS 64]
+
+extern idt_init 
+extern idtr
+
 l_long_mode_execution:
 
     ;reload segment reg
@@ -201,4 +208,145 @@ l_long_mode_execution:
     MOV rax, 0x2f592f412f4b2f4f
     MOV qword [0xb8000], rax
     
+    ; HANDLE INTERRUPTS
+    call idt_init
+
+      ; Load the IDT
+    lidt [idtr]          ; Load the IDT base and limit
+    sti                  ; Set the interrupt flag
+
     JMP l_end_64bit_execution
+
+
+
+;; OSDEV tutorial
+
+
+global isr_stub_table
+isr_stub_table:
+%assign i 0 
+%rep    32 
+    dq isr_stub_%+i ; use DQ instead if targeting 64-bit
+%assign i i+1 
+%endrep
+
+
+
+;; end osdev part
+
+;; lab macros
+%macro isr_err_stub 1
+global isr_stub_%+%1
+isr_stub_%+%1:
+    push DWORD 1 ; there is an error code
+    push  DWORD %1 ; interrupt index
+    jmp exception_handler
+%endmacro
+
+%macro isr_no_err_stub 1
+global isr_stub_%+%1
+isr_stub_%+%1:
+    push  DWORD 0 ; push a dummy error code to have same interrupt frame on no error exceptions
+    push  DWORD 0 ; there is no error code
+    push  DWORD %1 ; interrupt index
+    jmp exception_handler
+%endmacro
+
+extern InterruptCommonHandler
+;; DEFINE 32 EXCEPTION HANDLERS (STUBS)
+isr_no_err_stub 0
+isr_no_err_stub 1
+isr_no_err_stub 2
+isr_no_err_stub 3
+isr_no_err_stub 4
+isr_no_err_stub 5
+isr_no_err_stub 6
+isr_no_err_stub 7
+isr_err_stub    8
+isr_no_err_stub 9
+isr_err_stub    10
+isr_err_stub    11
+isr_err_stub    12
+isr_err_stub    13
+isr_err_stub    14
+isr_no_err_stub 15
+isr_no_err_stub 16
+isr_err_stub    17
+isr_no_err_stub 18
+isr_no_err_stub 19
+isr_no_err_stub 20
+isr_no_err_stub 21
+isr_no_err_stub 22
+isr_no_err_stub 23
+isr_no_err_stub 24
+isr_no_err_stub 25
+isr_no_err_stub 26
+isr_no_err_stub 27
+isr_no_err_stub 28
+isr_no_err_stub 29
+isr_err_stub    30
+isr_no_err_stub 31
+
+exception_handler: ;GPT code
+
+    ; Align RSP to 16-byte boundary before the call
+    sub rsp, 0x28          ; Allocate shadow space (32 bytes, 0x20) and align (8 extra bytes)
+
+    ; Step 1: Set up COMPLETE_PROCESSOR_STATE structure in memory
+    lea rax, [rsp + 0x28]  ; Calculate address for COMPLETE_PROCESSOR_STATE
+    mov [rax], rax         ; Store RAX
+    mov [rax + 8], rbx     ; Store RBX
+    mov [rax + 16], rcx    ; Store RCX
+    mov [rax + 24], rdx    ; Store RDX
+    mov [rax + 32], rsp    ; Store RSP
+    mov [rax + 40], rbp    ; Store RBP
+    mov [rax + 48], rsi    ; Store RSI
+    mov [rax + 56], rdi    ; Store RDI
+    mov [rax + 64], r8     ; Store R8
+    mov [rax + 72], r9     ; Store R9
+    mov [rax + 80], r10    ; Store R10
+    mov [rax + 88], r11    ; Store R11
+    mov [rax + 96], r12    ; Store R12
+    mov [rax + 104], r13   ; Store R13
+    mov [rax + 112], r14   ; Store R14
+    mov [rax + 120], r15   ; Store R15
+
+    ; Save segment selectors in COMPLETE_PROCESSOR_STATE
+    mov ax, cs
+    mov [rax + 128], ax    ; Store CS
+    mov ax, ss
+    mov [rax + 130], ax    ; Store SS
+    mov ax, ds
+    mov [rax + 132], ax    ; Store DS
+    mov ax, es
+    mov [rax + 134], ax    ; Store ES
+
+    ; Save RFLAGS
+    pushfq
+    pop rax                 ; Store RFLAGS temporarily in RAX
+    mov [rax + 136], rax    ; Store RFLAGS in COMPLETE_PROCESSOR_STATE
+
+    ; Step 2: Set up INTERRUPT_STACK_COMPLETE structure in memory
+    lea rdx, [rsp + 0x10]  ; Load address for INTERRUPT_STACK_COMPLETE in RDX
+    mov [rdx], rsp         ; Set RIP in INTERRUPT_STACK_COMPLETE
+    mov [rdx + 8], cs      ; Set CS
+    pushfq
+    pop rax                 ; Store RFLAGS temporarily in RAX
+    mov [rdx + 16], rax     ; Set RFLAGS in INTERRUPT_STACK_COMPLETE
+    mov [rdx + 24], rsp    ; Set RSP
+    mov [rdx + 32], ss     ; Set SS
+
+    ; Step 3: Retrieve parameters from the stack
+    pop r8                  ; Pop ErrorCodeAvailable into r8 (0 or 1)
+    pop rcx                 ; Pop InterruptIndex into rcx
+
+    ; Call the C function
+    mov r9, rax             ; Pass pointer to COMPLETE_PROCESSOR_STATE
+
+    call InterruptCommonHandler
+
+    ; Clean up stack and return from interrupt
+    add rsp, 0x28
+    iretq
+
+
