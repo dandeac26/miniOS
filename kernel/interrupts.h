@@ -70,6 +70,7 @@ typedef struct {
     __int64 rflags;          // RFLAGS register
     void* rsp;              // Stack Pointer (RSP)
     __int16 ss;              // Stack Segment Selector (SS)
+    __int32 error_code;
 } INTERRUPT_STACK_COMPLETE;
 #pragma pack(pop)
 

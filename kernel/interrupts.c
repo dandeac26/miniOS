@@ -51,7 +51,7 @@ void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
 
 
 
-
+#pragma optimize("", off)
 void idt_init() {
 	idtr.base = (uintptr_t)&idt[0];
 	idtr.limit = (__int16)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
@@ -61,11 +61,12 @@ void idt_init() {
 		vectors[vector] = TRUE;
 	}
 
-
+    //__loadIDT();
     /// DONE IN __init.asm
 	//__asm volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
 	//__asm volatile ("sti"); // set the interrupt flag
 }
+#pragma optimize("", on)
 
 
 void InterruptCommonHandler(
@@ -78,7 +79,9 @@ void InterruptCommonHandler(
     switch (InterruptIndex) {
     case 0: // Divide by Zero Error
         // Handle the divide by zero error
-
+        __print_msg();
+        __magic();
+        __haltt();
         break;
     case 1: // Debug Exception
         // Handle debug exception

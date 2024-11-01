@@ -22,5 +22,7 @@ void __cli(void);
 void __sti(void);
 void __magic(void);         // MAGIC breakpoint into BOCHS (XCHG BX,BX)
 void __enableSSE(void);
-
+void __loadIDT(void);
+void __haltt(void);
+void __print_msg(void);
 #endif // _MAIN_H_
