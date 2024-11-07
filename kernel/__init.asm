@@ -361,7 +361,7 @@ exception_handler:
     pop rcx              ; Load interrupt_index
     pop rdx               ; Load error_code
     mov r9, rsp
-    break
+   
 
     ; Restore RSP to the original position
     mov rsp, rax         ; Restore stack pointer to its original position
@@ -405,77 +405,6 @@ exception_handler:
 
 
 
-
-exception_handler2: 
-
-    pop rcx               ; inter_index   
-    pop r8 ; Pop ErrorCodeAvailable into r8 (0 or 1)
-
-
-
-
-    ; Align RSP to 16-byte boundary before the call
-    sub rsp, 0x28          ; Allocate shadow space (32 bytes, 0x20) and align (8 extra bytes)
-
-    ; Set up COMPLETE_PROCESSOR_STATE structure in memory
-    lea rax, [rsp + 0x28]  ; Calculate address for COMPLETE_PROCESSOR_STATE
-    mov [rax], rax         ; Store RAX
-    mov [rax + 8], rbx     ; Store RBX
-    mov [rax + 16], rcx    ; Store RCX
-    mov [rax + 24], rdx    ; Store RDX
-
-
-    mov rbx, rsp
-    add rbx, 0x28
-
-
-    mov [rax + 32], rbx    ; Store RSP
-    mov [rax + 40], rbp    ; Store RBP
-    mov [rax + 48], rsi    ; Store RSI
-    mov [rax + 56], rdi    ; Store RDI
-    mov [rax + 64], r8     ; Store R8
-    mov [rax + 72], r9     ; Store R9
-    mov [rax + 80], r10    ; Store R10
-    mov [rax + 88], r11    ; Store R11
-    mov [rax + 96], r12    ; Store R12
-    mov [rax + 104], r13   ; Store R13
-    mov [rax + 112], r14   ; Store R14
-    mov [rax + 120], r15   ; Store R15
-
-    ; Save segment selectors in COMPLETE_PROCESSOR_STATE
-    mov ax, cs
-    mov [rax + 128], ax    ; Store CS
-    mov ax, ss
-    mov [rax + 130], ax    ; Store SS
-    mov ax, ds
-    mov [rax + 132], ax    ; Store DS
-    mov ax, es
-    mov [rax + 134], ax    ; Store ES
-
-    ; Save RFLAGS
-    pushfq
-    pop rax                 ; Store RFLAGS temporarily in RAX
-    mov [rax + 136], rax    ; Store RFLAGS in COMPLETE_PROCESSOR_STATE
-
-    ; INTERRUPT_STACK_COMPLETE structure in memory
-    lea rdx, [rsp + 0x10]  ; Load address for INTERRUPT_STACK_COMPLETE in RDX
-    mov [rdx], rsp         ; Set RIP in INTERRUPT_STACK_COMPLETE
-    mov [rdx + 8], cs      ; Set CS
-    pushfq
-    pop rax                 ; Store RFLAGS temporarily in RAX
-    mov [rdx + 16], rax     ; Set RFLAGS in INTERRUPT_STACK_COMPLETE
-    mov [rdx + 24], rsp    ; Set RSP
-    mov [rdx + 32], ss     ; Set SS
-
-
-    ; Call the C function
-    mov r9, rax             ; Pass pointer to COMPLETE_PROCESSOR_STATE
-
-    call InterruptCommonHandler
-
-    ; Clean up stack and return from interrupt
-    add rsp, 0x28
-    iretq
 
 
 

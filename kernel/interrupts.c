@@ -76,15 +76,30 @@ void InterruptCommonHandler(
     INTERRUPT_STACK_COMPLETE* StackPointer
 ) {
 
-
-    LogSerialAndScreen("\nException %d\nrax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d\n\nError Code:0x%d\nRIP:0x%X\nCS:0x%X\nRFLAGS:0x%X\nRSP:0x%X\nSS:0x%X\n",
+    LogSerialAndScreen("\Interrupt Index: %d\nHas Error: %d\n-----------\nCOMPLETE_PROCESSOR_STATE: \nrax:0x%X | rbx:0x%X | rcx:0x%X | rdx:0x%X\nrsi:0x%X | rdi:0x%X | rbp:0x%X | r8:0x%X\nr9:0x%X | r10:0x%X | r11:0x%X | r12:0x%X\nr13:0x%X | r14:0x%X | r15:0x%X\nrflags:0x%X\ncs:0x%X | ss:0x%X | ds:0x%X | es:0x%X\n-----------\nSTACK DATA: \nError Code:0x%D | RIP:0x%X | CS:0x%X | RFLAGS:0x%X | RSP:0x%X | SS:0x%X\n",
         InterruptIndex,
+        ErrorCodeAvailable,
         ProcessorState->rax,
         ProcessorState->rbx,
         ProcessorState->rcx,
         ProcessorState->rdx,
-        InterruptIndex,
-        ErrorCodeAvailable,
+        ProcessorState->rsi,
+        ProcessorState->rdi,
+        ProcessorState->rbp,
+        ProcessorState->r8,
+        ProcessorState->r9,
+        ProcessorState->r10,
+        ProcessorState->r11,
+        ProcessorState->r12,
+        ProcessorState->r13,
+        ProcessorState->r14,
+        ProcessorState->r15,
+        ProcessorState->rflags,
+        ProcessorState->cs,
+        ProcessorState->ss,
+        ProcessorState->ds,
+        ProcessorState->es,
+        
         StackPointer->error_code,
         StackPointer->rip,
         StackPointer->cs,
@@ -175,5 +190,5 @@ void InterruptCommonHandler(
     if (ErrorCodeAvailable) {
         // Process the error code if needed
     }
-
+    return;
 }
