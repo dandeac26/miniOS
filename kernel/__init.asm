@@ -312,8 +312,101 @@ isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
 
+exception_handler:
 
-exception_handler: 
+    ; interrupt index
+    ; has_error_code
+    ; rax           0x1FFFF8
+    ; rbx  0x1xFFFF0
+
+    ; Save the state of all general-purpose registers
+    break
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+
+    ; Save RFLAGS
+    pushfq               ; Save RFLAGS onto the stack
+
+    ; Manually save the segment registers to general-purpose registers or memory
+    mov rax, cs          ; Save CS in RAX
+    push rax             ; Push CS onto the stack
+
+    mov rax, ss          ; Save SS in RAX
+    push rax             ; Push SS onto the stack
+
+    mov rax, ds          ; Save DS in RAX
+    push rax             ; Push DS onto the stack
+
+    mov rax, es          ; Save ES in RAX
+    push rax             ; Push ES onto the stack
+
+    mov r8, rsp
+    ; Adjust RSP to reach interrupt_index and error_code
+    mov rax, rsp         ; Save the current stack pointer
+    add rsp, 160        ; Skip past saved state to reach interrupt_index and error_code
+    
+    pop rcx              ; Load interrupt_index
+    pop rdx               ; Load error_code
+    mov r9, rsp
+    break
+
+    ; Restore RSP to the original position
+    mov rsp, rax         ; Restore stack pointer to its original position
+
+    ; Call the interrupt handler with rcx and r8 set
+    call InterruptCommonHandler
+
+    ; Restore segment registers, RFLAGS, and general-purpose registers (reverse order)
+    pop rax              ; Retrieve ES
+    mov es, ax           ; Restore ES
+
+    pop rax              ; Retrieve DS
+    mov ds, ax           ; Restore DS
+
+    pop rax              ; Retrieve SS
+    mov ss, ax           ; Restore SS
+
+    pop rax              ; Retrieve CS
+    mov cs, ax          ;restore cs
+
+    popfq                ; Restore RFLAGS
+
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+
+    ; Return to the previous context (if this is an interrupt handler)
+    iretq
+
+
+
+
+exception_handler2: 
 
     pop rcx               ; inter_index   
     pop r8 ; Pop ErrorCodeAvailable into r8 (0 or 1)
