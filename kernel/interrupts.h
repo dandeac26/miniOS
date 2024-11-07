@@ -70,9 +70,22 @@ typedef struct {
     __int64 rflags;          // RFLAGS register
     void* rsp;              // Stack Pointer (RSP)
     __int16 ss;              // Stack Segment Selector (SS)
-    __int32 error_code;
 } INTERRUPT_STACK_COMPLETE;
 #pragma pack(pop)
+
+
+
+//#pragma pack(push)
+//#pragma pack(1)
+//typedef struct {
+//    __int32 error_code;
+//    void* rip;               // Return Instruction Pointer (RIP)
+//    __int16 cs;              // Code Segment Selector (CS)
+//    __int64 rflags;          // RFLAGS register
+//    void* rsp;              // Stack Pointer (RSP)
+//    __int16 ss;              // Stack Segment Selector (SS)
+//} INTERRUPT_STACK_COMPLETE;
+//#pragma pack(pop)
 
 #pragma pack(push)
 #pragma pack(1)
@@ -115,7 +128,7 @@ static int vectors[IDT_MAX_DESCRIPTORS];
 ///  FUNCTIONS
 
 void InterruptCommonHandler(
-	__int8 InterruptIndex,   // [0x0, 0xFF]
+	__int8 InterruptIndex,   // [0x0, 0xFF
 	INTERRUPT_STACK_COMPLETE* StackPointer,      // Pointer to Stack Pointer After Transfer to Handler (Fig 6-9)
 	__int8 ErrorCodeAvailable, // 0 if not available
 	COMPLETE_PROCESSOR_STATE* ProcessorState // Pointer to a structure which contains trap context (see above trap frame dump example)

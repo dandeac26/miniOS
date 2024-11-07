@@ -25,4 +25,7 @@ void __enableSSE(void);
 void __loadIDT(void);
 void __haltt(void);
 void __print_msg(void);
+void __cause_div0(void);
+void __cause_pageFault(void);
+void __cause_int3(void);
 #endif // _MAIN_H_

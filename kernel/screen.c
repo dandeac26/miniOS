@@ -62,3 +62,60 @@ void ClearScreen()
     CursorMove(0, 0);
 }
 
+void ScreenDisplay(char* logBuffer, int color)
+{
+    int i, currentColumn = 0, currentRow = 0;
+
+    // Ensure the logBuffer is not NULL
+    if (logBuffer == NULL)
+        return;
+
+    // Write the logBuffer to video memory
+    for (i = 0; logBuffer[i] != '\0' && i < MAX_OFFSET; i++)
+    {
+        if (logBuffer[i] == '\n')
+        {
+            // Move to the next line
+            currentRow++;
+            currentColumn = 0; // Reset column to the start of the line
+
+            // If we've reached the maximum number of rows, clear the screen or scroll
+            if (currentRow >= MAX_LINES)
+            {
+                ClearScreen(); // Clear the screen, or implement scrolling logic if desired
+                currentRow = 0; // Reset to the first row
+            }
+        }
+        else
+        {
+            // Set the character and its color in video memory
+            int pos = currentRow * MAX_COLUMNS + currentColumn; // Calculate the position in video memory
+
+            // Ensure we don't write beyond the screen buffer
+            if (pos < MAX_OFFSET)
+            {
+                gVideo[pos].c = logBuffer[i];
+                gVideo[pos].color = color;
+
+                currentColumn++;
+                // If we reach the end of a row, move to the next line
+                if (currentColumn >= MAX_COLUMNS)
+                {
+                    currentColumn = 0; // Reset column to start
+                    currentRow++; // Move to the next row
+                }
+
+                // If we've reached the maximum number of rows, clear the screen or scroll
+                if (currentRow >= MAX_LINES)
+                {
+                    ClearScreen(); // Clear the screen, or implement scrolling logic if desired
+                    currentRow = 0; // Reset to the first row
+                }
+            }
+        }
+    }
+
+    // Move cursor to the last position after writing
+    CursorPosition(currentRow * MAX_COLUMNS + currentColumn);
+}
+

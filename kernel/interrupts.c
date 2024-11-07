@@ -1,5 +1,5 @@
 #include "interrupts.h"
-
+#include "main.h"
 
 //void exception_handler() {
 //	__asm volatile ("cli; hlt"); // Completely hangs the computer
@@ -75,20 +75,90 @@ void InterruptCommonHandler(
     __int8 ErrorCodeAvailable,
     COMPLETE_PROCESSOR_STATE* ProcessorState
 ) {
-    
+
+
+    LogSerialAndScreen("\nException %d\nrax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
+        InterruptIndex,
+        ProcessorState->rax,
+        ProcessorState->rbx,
+        ProcessorState->rcx,
+        ProcessorState->rdx,
+        InterruptIndex,
+        ErrorCodeAvailable
+    );
+    //__print_msg();
+    __magic();
+    __haltt();
+
+
+
     switch (InterruptIndex) {
     case 0: // Divide by Zero Error
         // Handle the divide by zero error
-        __print_msg();
+        
+
+        LogSerialAndScreen("\ndiv0");
+        LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
+            ProcessorState->rax,
+            ProcessorState->rbx,
+            ProcessorState->rcx,
+            ProcessorState->rdx,
+            InterruptIndex,
+            ErrorCodeAvailable
+        );
+        //__print_msg();
         __magic();
         __haltt();
         break;
     case 1: // Debug Exception
-        // Handle debug exception
+        
+
+        LogSerialAndScreen("\nException1");
+        LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
+            ProcessorState->rax,
+            ProcessorState->rbx,
+            ProcessorState->rcx,
+            ProcessorState->rdx,
+            InterruptIndex,
+            ErrorCodeAvailable
+        );
+        //__print_msg();
+        __magic();
+        __haltt();
+
+
+
         break;
 
 
-
+    case 2:
+        LogSerialAndScreen("\nException3");
+        LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
+            ProcessorState->rax,
+            ProcessorState->rbx,
+            ProcessorState->rcx,
+            ProcessorState->rdx,
+            InterruptIndex,
+            ErrorCodeAvailable
+        );
+        //__print_msg();
+        __magic();
+        __haltt();
+        break;
+    case 3:
+        LogSerialAndScreen("\nException3");
+        LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
+            ProcessorState->rax,
+            ProcessorState->rbx,
+            ProcessorState->rcx,
+            ProcessorState->rdx,
+            InterruptIndex,
+            ErrorCodeAvailable
+        );
+        //__print_msg();
+        __magic();
+        __haltt();
+        break;
        
     default:
         // Default case to handle unhandled interrupts
