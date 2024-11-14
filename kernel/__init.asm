@@ -98,7 +98,9 @@ __haltt:
 
 
 
-EXPORT2C ASMEntryPoint, __cli, __sti, __magic, __enableSSE, __loadIDT, __haltt, __print_msg, __cause_div0, __cause_pageFault, __cause_int3
+
+EXPORT2C ASMEntryPoint, __cli, __sti, __magic, __enableSSE, __loadIDT, __haltt, __print_msg, __cause_div0, __cause_pageFault, __cause_int3, __send_EOI, __pit_isr_stub_handler, __kb_isr_stub_handler
+
 
 align 0x1000
   PML4_table:
@@ -122,6 +124,18 @@ FLAT_DESCRIPTOR_CODE32  equ 0x00CF9A000000FFFF  ; Code: Execute/Read
 FLAT_DESCRIPTOR_DATA32  equ 0x00CF92000000FFFF  ; Data: Read/Write
 FLAT_DESCRIPTOR_CODE16  equ 0x00009B000000FFFF  ; Code: Execute/Read, accessed
 FLAT_DESCRIPTOR_DATA16  equ 0x000093000000FFFF  ; Data: Read/Write, accessed
+
+
+PIT_COMMAND_PORT equ 0x43
+PIT_CHANNEL0_PORT equ 0x40
+PIT_FREQUENCY    equ 1193180  ; Base frequency of the PIT
+
+system_timer_fractions:  resd 1          ; Fractions of 1 ms since timer initialized
+system_timer_ms:         resd 1          ; Number of whole ms since timer initialized
+IRQ0_fractions:          resd 1          ; Fractions of 1 ms between IRQs
+IRQ0_ms:                 resd 1          ; Number of whole ms between IRQs
+IRQ0_frequency:          resd 1          ; Actual frequency of PIT
+PIT_reload_value:        resw 1          ; Current PIT reload value
 
 GDT64_Table:
     .null     dq 0                         ;  0
@@ -206,6 +220,9 @@ l_long_mode_setup:
 
 extern idt_init 
 extern idtr
+extern isr_pit_c
+extern keyboard_interrupt_handler_c
+;global init_pit
 
 l_long_mode_execution:
 
@@ -217,10 +234,6 @@ l_long_mode_execution:
     MOV fs, ax
     MOV gs, ax
 
-    ; print `OKAY` to screen
-    ;MOV rax, 0x2f592f412f4b2f4f
-    ;MOV qword [0xb8000], rax
-    
     ; HANDLE INTERRUPTS
     
     sub rsp, 32 ;allocate shadow space
@@ -232,13 +245,6 @@ l_long_mode_execution:
     
     ; Load the IDT base and limit
     sti                  ; Set the interrupt flag
-
-    ;break
-    ;mov rax, 10
-    ;xor rdx, rdx
-    ;xor rbx, rbx
-    ;div rbx ; generate div by 0 interrupt
-    ;break
 
     JMP l_end_64bit_execution
 
@@ -254,8 +260,6 @@ isr_stub_table:
     dq isr_stub_%+i ; use DQ instead if targeting 64-bit
 %assign i i+1 
 %endrep
-
-
 
 ;; end osdev part
 
@@ -277,7 +281,9 @@ isr_stub_%+%1:
     jmp exception_handler
 %endmacro
 
+
 extern InterruptCommonHandler
+
 ;; DEFINE 32 EXCEPTION HANDLERS (STUBS)
 isr_no_err_stub 0
 isr_no_err_stub 1
@@ -312,12 +318,13 @@ isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
 
+
 exception_handler:
 
     ; interrupt index
     ; has_error_code
     ; rax           0x1FFFF8
-    ; rbx  0x1xFFFF0
+    ; rbx  0x1xFFFF0c
 
     ; Save the state of all general-purpose registers
     break
@@ -403,20 +410,10 @@ exception_handler:
     ; Return to the previous context (if this is an interrupt handler)
     iretq
 
-
-
-
-
-
-
 __print_msg:
     ;print `OKAY` to screen
     MOV rax, 0x2f592f412f4b2f4f
     MOV qword [0xb8000], rax
-
-    ; Write "DIV0" to video memory
-    ;mov rax, 0x00444f5649444f00  ; "DIV0" with padding for word alignment
-    ;mov [0xb8000], rax
 
     RET
 
@@ -443,3 +440,18 @@ __cause_pageFault:
 __cause_int3:
     INT3
     RET
+
+__send_EOI:
+    push rax
+    mov al, 0x20
+	out 0x20, al  
+    pop rax
+    RET
+
+__pit_isr_stub_handler:
+    call isr_pit_c
+    iretq
+
+__kb_isr_stub_handler:
+    call keyboard_interrupt_handler_c
+    iretq

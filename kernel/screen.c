@@ -1,6 +1,9 @@
 #include "screen.h"
 
+#include "console.h"
+
 static PSCREEN gVideo = (PSCREEN)(0x000B8000);
+static char CLIBuffer[82];
 
 void CursorMove(int row, int col)
 {
@@ -58,9 +61,61 @@ void ClearScreen()
         gVideo[i].color = 10;
         gVideo[i].c = ' ';
     }
+    current_line_offset = 0;
 
     CursorMove(0, 0);
 }
+
+
+
+
+
+void PutChar(char C)
+{
+    if( C == ENTER_KEY2 || C == ENTER_KEY)
+    {
+       
+        ParseCommand(CLIBuffer, strlen(CLIBuffer));
+        ClearScreen();
+       /* ClearScreen();
+        char MSG[] = "You typed command: ";
+        for (int i = 0; (i < strlen(MSG)) && (i < MAX_OFFSET); i++) {
+            gVideo[i].color = 10;
+            gVideo[i].c = MSG[i];
+        }
+        current_line_offset += strlen(MSG)+1;
+        CursorPosition(current_line_offset);
+        enter_was_typed = 1;*/
+      /*  for (int i = 1; (i <= current_line_offset) && (i < MAX_OFFSET); i++) {
+            gVideo[current_line_offset+80 + i].color = 10;
+            gVideo[current_line_offset+80 + i].c = CLIBuffer[i];
+
+        }
+        CursorPosition(current_line_offset + 80 + current_line_offset + 1);
+        */
+    }
+    else if (C == 8) 
+    {
+        current_line_offset--;
+        gVideo[current_line_offset].color = 10;
+        C = ' ';
+        gVideo[current_line_offset].c = C; 
+        CLIBuffer[current_line_offset] = C;
+        CursorPosition(current_line_offset);
+        
+    }
+    else {
+        gVideo[current_line_offset].color = 10;
+        gVideo[current_line_offset].c = C;
+        ++current_line_offset;
+        CLIBuffer[current_line_offset] = C;
+        CursorPosition(current_line_offset);
+    }
+   
+    
+    
+}
+
 
 void ScreenDisplay(char* logBuffer, int color)
 {

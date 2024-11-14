@@ -91,6 +91,8 @@ typedef struct {
 #pragma pack(push)
 #pragma pack(1)
 typedef struct {
+    __int64 gs;
+    __int64 fs;
     __int64 es;              // Extra Segment Selector (ES)
     __int64 ds;              // Data Segment Selector (DS)
     __int64 ss;              // Stack Segment Selector (SS)
@@ -117,6 +119,7 @@ typedef struct {
 
 
 extern void* isr_stub_table[];
+extern void* irq_stub_table[];
 
 __declspec(align(16))
 	static idt_entry_t idt[IDT_SIZE];
@@ -126,6 +129,7 @@ __declspec(align(16))
 
 static int vectors[IDT_MAX_DESCRIPTORS];
 
+void isr_pit_c();
 
 ///  FUNCTIONS
 
@@ -140,6 +144,6 @@ void InterruptCommonHandler(
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags);
 void idt_init(void);
 
-
+void keyboard_interrupt_handler();
 #endif // !_INTERRUPTS_H_
 

@@ -131,16 +131,23 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="console.c" />
     <ClCompile Include="interrupts.c" />
+    <ClCompile Include="IO.c" />
     <ClCompile Include="logging.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="PIC.c" />
     <ClCompile Include="screen.c" />
     <ClCompile Include="string.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="console.h" />
     <ClInclude Include="interrupts.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="PIC.h" />
+    <ClInclude Include="IO.h" />
+    <ClInclude Include="scancode.h" />
     <ClInclude Include="screen.h" />
     <ClInclude Include="string.h" />
   </ItemGroup>

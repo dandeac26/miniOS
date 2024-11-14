@@ -1,25 +1,15 @@
 #include "interrupts.h"
-#include "main.h"
-
-//void exception_handler() {
-//	__asm volatile ("cli; hlt"); // Completely hangs the computer
-//}
+#include "scancode.h"
+#include "console.h"
+#include "screen.h"
 
 idtr_t idtr;
 void* isr_stub_table[];
+void* irq_stub_table[];
+extern void* pit_isr_stub;
 
-/// OSDEV TUTORIAL
-//void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
-//	idt_entry_t* descriptor = &idt[vector];
-//
-//	descriptor->isr_low = (__int64)isr & 0xFFFF;
-//	descriptor->kernel_cs = GDT_OFFSET_KERNEL_CODE;
-//	descriptor->ist = 0;
-//	descriptor->attributes = flags;
-//	descriptor->isr_mid = ((__int64)isr >> 16) & 0xFFFF;
-//	descriptor->isr_high = ((__int64)isr >> 32) & 0xFFFFFFFF;
-//	descriptor->reserved = 0;
-//}
+
+static int tick_count = 0;
 
 /// ADJUSTED TO LAB CODE
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
@@ -50,6 +40,17 @@ void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
 }
 
 
+void isr_pit_c()
+{
+    tick_count++;
+
+    // Check if 2 seconds (100 ticks at 100 Hz) have passed
+    if (tick_count % 200 == 0) {
+        //LogSerialAndScreen("test with tick = %d\n", tick_count);
+    }
+    __send_EOI();
+}
+
 
 #pragma optimize("", off)
 void idt_init() {
@@ -61,10 +62,10 @@ void idt_init() {
 		vectors[vector] = TRUE;
 	}
 
-    //__loadIDT();
-    /// DONE IN __init.asm
-	//__asm volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
-	//__asm volatile ("sti"); // set the interrupt flag
+    idt_set_descriptor(32, __pit_isr_stub_handler, 0x8E);
+    idt_set_descriptor(33, __kb_isr_stub_handler, 0x8E);
+
+    ///REST DONE IN __init.asm
 }
 #pragma optimize("", on)
 
@@ -75,7 +76,7 @@ void InterruptCommonHandler(
     COMPLETE_PROCESSOR_STATE* ProcessorState,
     INTERRUPT_STACK_COMPLETE* StackPointer
 ) {
-
+   
     LogSerialAndScreen("\Interrupt Index: %d\nHas Error: %d\n-----------\nCOMPLETE_PROCESSOR_STATE: \nrax:0x%X | rbx:0x%X | rcx:0x%X | rdx:0x%X\nrsi:0x%X | rdi:0x%X | rbp:0x%X | r8:0x%X\nr9:0x%X | r10:0x%X | r11:0x%X | r12:0x%X\nr13:0x%X | r14:0x%X | r15:0x%X\nrflags:0x%X\ncs:0x%X | ss:0x%X | ds:0x%X | es:0x%X\n-----------\nSTACK DATA: \nError Code:0x%D | RIP:0x%X | CS:0x%X | RFLAGS:0x%X | RSP:0x%X | SS:0x%X\n",
         InterruptIndex,
         ErrorCodeAvailable,
@@ -107,88 +108,44 @@ void InterruptCommonHandler(
         StackPointer->rsp,
         StackPointer->ss
     );
-    //__print_msg();
+
     __magic();
-    __haltt();
-
-
-
-    //switch (InterruptIndex) {
-    //case 0: // Divide by Zero Error
-    //    // Handle the divide by zero error
-    //    
-
-    //    LogSerialAndScreen("\ndiv0");
-    //    LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
-    //        ProcessorState->rax,
-    //        ProcessorState->rbx,
-    //        ProcessorState->rcx,
-    //        ProcessorState->rdx,
-    //        InterruptIndex,
-    //        ErrorCodeAvailable
-    //    );
-    //    //__print_msg();
-    //    __magic();
-    //    __haltt();
-    //    break;
-    //case 1: // Debug Exception
-    //    
-
-    //    LogSerialAndScreen("\nException1");
-    //    LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
-    //        ProcessorState->rax,
-    //        ProcessorState->rbx,
-    //        ProcessorState->rcx,
-    //        ProcessorState->rdx,
-    //        InterruptIndex,
-    //        ErrorCodeAvailable
-    //    );
-    //    //__print_msg();
-    //    __magic();
-    //    __haltt();
-
-
-
-    //    break;
-
-
-    //case 2:
-    //    LogSerialAndScreen("\nException3");
-    //    LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
-    //        ProcessorState->rax,
-    //        ProcessorState->rbx,
-    //        ProcessorState->rcx,
-    //        ProcessorState->rdx,
-    //        InterruptIndex,
-    //        ErrorCodeAvailable
-    //    );
-    //    //__print_msg();
-    //    __magic();
-    //    __haltt();
-    //    break;
-    //case 3:
-    //    LogSerialAndScreen("\nException3");
-    //    LogSerialAndScreen("rax:0x%X\nrbx:0x%X\nrcx:0x%X\nrdx:0x%X\nInterrupt index: %d\nHas error code: %d",
-    //        ProcessorState->rax,
-    //        ProcessorState->rbx,
-    //        ProcessorState->rcx,
-    //        ProcessorState->rdx,
-    //        InterruptIndex,
-    //        ErrorCodeAvailable
-    //    );
-    //    //__print_msg();
-    //    __magic();
-    //    __haltt();
-    //    break;
-    //   
-    //default:
-    //    // Default case to handle unhandled interrupts
-    //    break;
-    //}
+    //__haltt(); // MIGHT BE NEEDED
 
     
     if (ErrorCodeAvailable) {
-        // Process the error code if needed
+
     }
-    return;
+}
+
+
+
+void keyboard_interrupt_handler_c()
+{
+    unsigned char scancode;
+
+    scancode = __inbyte(0x60); // Read from port 0x60, where the scancode is placed
+
+    
+    if (scancode & 0x80) {                                          // Check if it's an extended key
+        
+        unsigned short key = _kkybrd_scancode_ext[scancode - 0x80]; // It's an extended key, find in _kkybrd_scancode_ext
+        if (key != KEY_UNKNOWN) {
+            //LogSerialAndScreen("\n%c", key);                              // Log the key
+            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
+            PutChar((char)key);
+        }
+    }
+    else {                                                          
+        
+        unsigned short key = _kkybrd_scancode_std[scancode];        // Standard scancode, find in _kkybrd_scancode_std
+        if (key != KEY_UNKNOWN) {
+            //LogSerialAndScreen("\n%c", key);
+            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
+
+            PutChar((char)key);
+        }
+    }
+
+    __send_EOI();
 }
