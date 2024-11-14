@@ -65,42 +65,61 @@ typedef struct {
 #pragma pack(push)
 #pragma pack(1)
 typedef struct {
-    void* rip;               // Return Instruction Pointer (RIP)
-    __int16 cs;              // Code Segment Selector (CS)
-    __int64 rflags;          // RFLAGS register
-    void* rsp;              // Stack Pointer (RSP)
-    __int16 ss;              // Stack Segment Selector (SS)
+    __int64 error_code;
+    __int64 rip;
+    __int64 cs;
+    __int64 rflags;
+    __int64 rsp;
+    __int64 ss;
 } INTERRUPT_STACK_COMPLETE;
 #pragma pack(pop)
+
+
+
+//#pragma pack(push)
+//#pragma pack(1)
+//typedef struct {
+//    __int32 error_code;
+//    void* rip;               // Return Instruction Pointer (RIP)
+//    __int16 cs;              // Code Segment Selector (CS)
+//    __int64 rflags;          // RFLAGS register
+//    void* rsp;              // Stack Pointer (RSP)
+//    __int16 ss;              // Stack Segment Selector (SS)
+//} INTERRUPT_STACK_COMPLETE;
+//#pragma pack(pop)
 
 #pragma pack(push)
 #pragma pack(1)
 typedef struct {
-    __int64 rax;             // General-purpose register RAX
-    __int64 rbx;             // General-purpose register RBX
-    __int64 rcx;             // General-purpose register RCX
-    __int64 rdx;             // General-purpose register RDX
-    __int64 rsi;             // General-purpose register RSI
-    __int64 rdi;             // General-purpose register RDI
-    __int64 rbp;             // Base Pointer (RBP)
-    __int64 rsp;             // Stack Pointer (RSP)
-    __int64 r8;              // General-purpose register R8
-    __int64 r9;              // General-purpose register R9
-    __int64 r10;             // General-purpose register R10
-    __int64 r11;             // General-purpose register R11
-    __int64 r12;             // General-purpose register R12
-    __int64 r13;             // General-purpose register R13
-    __int64 r14;             // General-purpose register R14
-    __int64 r15;             // General-purpose register R15
-    __int16 cs;              // Code Segment Selector (CS)
-    __int16 ss;              // Stack Segment Selector (SS)
+    __int64 gs;
+    __int64 fs;
+    __int64 es;              // Extra Segment Selector (ES)
+    __int64 ds;              // Data Segment Selector (DS)
+    __int64 ss;              // Stack Segment Selector (SS)
+    __int64 cs;              // Code Segment Selector (CS)
     __int64 rflags;          // RFLAGS register
+    __int64 r15;             // General-purpose register R15
+    __int64 r14;             // General-purpose register R14
+    __int64 r13;             // General-purpose register R13
+    __int64 r12;             // General-purpose register R12
+    __int64 r11;             // General-purpose register R11
+    __int64 r10;             // General-purpose register R10
+    __int64 r9;              // General-purpose register R9
+    __int64 r8;              // General-purpose register 
+    __int64 rbp;             // Base Pointer (RBP)
+    __int64 rdi;             // General-purpose register RDI
+    __int64 rsi;             // General-purpose register RSI
+    __int64 rdx;             // General-purpose register RDX
+    __int64 rcx;             // General-purpose register RCX
+    __int64 rbx;             // General-purpose register RBX
+    __int64 rax;             // General-purpose register RAX
 } COMPLETE_PROCESSOR_STATE;
 #pragma pack(pop)
 
 
 
 extern void* isr_stub_table[];
+extern void* irq_stub_table[];
 
 __declspec(align(16))
 	static idt_entry_t idt[IDT_SIZE];
@@ -110,20 +129,21 @@ __declspec(align(16))
 
 static int vectors[IDT_MAX_DESCRIPTORS];
 
+void isr_pit_c();
 
 ///  FUNCTIONS
 
 void InterruptCommonHandler(
-	__int8 InterruptIndex,   // [0x0, 0xFF]
-	INTERRUPT_STACK_COMPLETE* StackPointer,      // Pointer to Stack Pointer After Transfer to Handler (Fig 6-9)
+	__int8 InterruptIndex,   // [0x0, 0xFF
 	__int8 ErrorCodeAvailable, // 0 if not available
-	COMPLETE_PROCESSOR_STATE* ProcessorState // Pointer to a structure which contains trap context (see above trap frame dump example)
+	COMPLETE_PROCESSOR_STATE* ProcessorState, // Pointer to a structure which contains trap context (see above trap frame dump example)
+    INTERRUPT_STACK_COMPLETE* StackPointer //  // Pointer to Stack Pointer After Transfer to Handler (Fig 6-9)
 );
 
 //__declspec(noreturn) void exception_handler(void);
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags);
 void idt_init(void);
 
-
+void keyboard_interrupt_handler();
 #endif // !_INTERRUPTS_H_
 
