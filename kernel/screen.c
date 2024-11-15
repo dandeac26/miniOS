@@ -78,13 +78,33 @@ void PutChar(KEYCODE C, int is_ext)
             current_row++;
             current_line_offset = 0;
             CursorPosition(SCREEN_OFFSET);
+            line_size = 0;
         }
-        else if (C == 8 && current_line_offset > 0) {
+        else if (C == BACKSPACE_KEY && current_line_offset > 0) {
             current_line_offset--;
-            gVideo[SCREEN_OFFSET].color = 10;
-            gVideo[SCREEN_OFFSET].c = ' ';
+
+            /*gVideo[SCREEN_OFFSET].color = 10;
+            gVideo[SCREEN_OFFSET].c = ' ';*/
+            
+            // shift left
+            for (int i = current_line_offset; i < line_size; i++) {
+                if (i == line_size - 1)
+                {
+                    gVideo[current_row * MAX_COLUMNS + i].color = 10;
+                    gVideo[current_row * MAX_COLUMNS + i].c = ' ';
+                }
+                else {
+                    gVideo[current_row * MAX_COLUMNS + i].color = 10;
+                    gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i + 1].c;
+                }
+               
+            }
+
+            
             CLIBuffer[current_line_offset] = '\0';
             CursorPosition(SCREEN_OFFSET);
+            line_size--;
+            
         }
         else {
             gVideo[SCREEN_OFFSET].color = 10;
@@ -93,11 +113,13 @@ void PutChar(KEYCODE C, int is_ext)
             {
                 gVideo[SCREEN_OFFSET].c = (char)C;
                 CLIBuffer[current_line_offset++] = (char)C;
+                line_size++;
             }
 
             if (current_line_offset >= MAX_COLUMNS) {
                 current_row++;
                 current_line_offset = 0;
+                line_size = 0;
             }
 
             if (current_row >= MAX_LINES) {
@@ -111,17 +133,23 @@ void PutChar(KEYCODE C, int is_ext)
 
     else if (is_ext == 1) {
         // Handling arrow keys
-        if (C == KEY_UP && current_row > 0) {
+        if (C == KEY_UP && current_row > 0 && ConsoleMode == EDIT_MODE) {
             current_row--;
         }
-        else if (C == KEY_DOWN && current_row < MAX_LINES - 1) {
+        else if (C == KEY_DOWN && current_row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE) {
             current_row++;
         }
         else if (C == KEY_LEFT && current_line_offset > 0) {
             current_line_offset--;
         }
-        else if (C == KEY_RIGHT && current_line_offset < MAX_COLUMNS - 1) {
-            current_line_offset++;
+        else if (C == KEY_RIGHT && current_line_offset < MAX_COLUMNS - 1) { // end of console
+            if (ConsoleMode == NORMAL_MODE && current_line_offset < line_size) {
+                current_line_offset++;
+            }
+            else if (ConsoleMode == EDIT_MODE) {
+                current_line_offset++;
+            }
+            
         }
         CursorPosition(SCREEN_OFFSET);
     }

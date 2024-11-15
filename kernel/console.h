@@ -20,6 +20,15 @@
 #define BLUE_COLOR                  0x1
 #define BLACK_COLOR                 0x0
 
+#define BACKSPACE_KEY 8
+
+typedef enum _CONSOLE_MODE {
+    EDIT_MODE = 0,
+    NORMAL_MODE = 1
+}CONSOLE_MODE;
+
+static CONSOLE_MODE ConsoleMode = NORMAL_MODE;
+static int line_size = 0;
 void CClearScreen(
 
     void* VideoMemoryBuffer,   // if NULL don't store the previous content
