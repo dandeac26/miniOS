@@ -90,7 +90,7 @@ typedef struct {
 } COMPLETE_PROCESSOR_STATE;
 #pragma pack(pop)
 
-
+void GetTimeTillBoot(int minutes, int seconds);
 
 extern void* isr_stub_table[];
 extern void* irq_stub_table[];

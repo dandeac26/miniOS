@@ -2,6 +2,8 @@
 #define _CONSOLE_H_
 
 #include "main.h"
+#include "screen.h"
+#include "interrupts.h"
 
 #define BRIGHT_WHITE_COLOR          0xF
 #define YELLOW_COLOR                0xE
@@ -22,6 +24,7 @@
 
 #define BACKSPACE_KEY 8
 
+
 typedef enum _CONSOLE_MODE {
     EDIT_MODE = 0,
     NORMAL_MODE = 1
@@ -29,22 +32,15 @@ typedef enum _CONSOLE_MODE {
 
 static CONSOLE_MODE ConsoleMode = NORMAL_MODE;
 static int line_size = 0;
-void CClearScreen(
-
-    void* VideoMemoryBuffer,   // if NULL don't store the previous content
-
-    DWORD   BufferSize,
-
-    int* CursorPosition // if NULL don't save cursor position
-
-    );
+static int text_color = 10;
 
 
-void ParseCommand(char Buffer[], size_t size);
-int is_format_char(char c);
+void CClearScreen(char* VideoMemoryBuffer, DWORD BufferSize, int* CursorPosition);
+
+
 void RestoreScreen(
 
-    void* VideoMemoryBuffer,
+    char* VideoMemoryBuffer,
 
     DWORD   BufferSize,
 
@@ -52,5 +48,8 @@ void RestoreScreen(
 
 );
 
+
+void ParseCommand(char* Buffer, size_t size);
+int is_format_char(char c);
 
 #endif _CONSOLE_H_

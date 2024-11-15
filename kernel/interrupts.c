@@ -9,7 +9,7 @@ void* irq_stub_table[];
 extern void* pit_isr_stub;
 
 
-static int tick_count = 0;
+static volatile int tick_count = 0;
 
 /// ADJUSTED TO LAB CODE
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
@@ -49,6 +49,16 @@ void isr_pit_c()
         //LogSerialAndScreen("test with tick = %d\n", tick_count);
     }
     __send_EOI();
+}
+
+int GetTimeTillBootSeconds() {
+    return tick_count / 100; // 100 ticks = 1 second
+}
+
+void GetTimeTillBoot(int* minutes, int* seconds) {
+    int total_seconds = GetTimeTillBootSeconds();
+     *minutes = total_seconds / 60;
+     *seconds = total_seconds % 60;
 }
 
 
@@ -118,14 +128,15 @@ void InterruptCommonHandler(
     }
 }
 
+
 static int is_extended = 0;
+
 
 void keyboard_interrupt_handler_c() {
     unsigned char scancode;
-    scancode = __inbyte(0x60);  // Read from port 0x60
+    scancode = __inbyte(0x60);
     
     if (scancode == 0xE0 || scancode == 0xE1) {
-        // If it's an extended key prefix, set the flag and return
         is_extended = 1;
         __send_EOI();
         return;
@@ -134,64 +145,20 @@ void keyboard_interrupt_handler_c() {
     KEYCODE key;
 
     if (is_extended) {
-        // Handle as an extended scancode
+        
         key = _kkybrd_scancode_ext[scancode];
         if (key != KEY_UNKNOWN) {
-            PutChar(key, is_extended);  // Second argument indicates if it's extended
+            PutChar(key, is_extended);  
         }
-        is_extended = 0;  // Reset the flag
+        is_extended = 0;  
     }
     else {
         // Handle as a standard scancode
         key = _kkybrd_scancode_std[scancode];
         if (key != KEY_UNKNOWN) {
-            PutChar(key, is_extended);  // Second argument indicates if it's extended
+            PutChar(key, is_extended);  
         }
     }
 
-    
-
-    __send_EOI();  // Send end-of-interrupt signal
+    __send_EOI();  
 }
-
-
-//void keyboard_interrupt_handler_c()
-//{
-//    __int16 scancode;
-//
-//    scancode = __inbyte(0x60); // Read from port 0x60, where the scancode is placed
-//
-//    
-//    if (scancode & 0xE0) {                                          // Check if it's an extended key
-//        
-//        KEYCODE key = _kkybrd_scancode_ext[scancode - 0xE0]; // It's an extended key, find in _kkybrd_scancode_ext
-//        if (key != KEY_UNKNOWN) {
-//            //LogSerialAndScreen("\n%c", key);                              // Log the key
-//            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
-//            PutChar(key, 1);
-//            
-//        }
-//    }
-//    else if (scancode & 0xE1) {                                          // Check if it's an extended key
-//
-//        KEYCODE key = _kkybrd_scancode_ext[scancode - 0xE1]; // It's an extended key, find in _kkybrd_scancode_ext
-//        if (key != KEY_UNKNOWN) {
-//            //LogSerialAndScreen("\n%c", key);                              // Log the key
-//            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
-//            PutChar(key, 1);
-//
-//        }
-//    }
-//    else {                                                          
-//        
-//        KEYCODE key = _kkybrd_scancode_std[scancode];        // Standard scancode, find in _kkybrd_scancode_std
-//        if (key != KEY_UNKNOWN) {
-//            //LogSerialAndScreen("\n%c", key);
-//            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
-//
-//            PutChar(key, 0);
-//        }
-//    }
-//
-//    __send_EOI();
-//}

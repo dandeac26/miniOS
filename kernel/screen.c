@@ -2,6 +2,7 @@
 
 static PSCREEN gVideo = (PSCREEN)(0x000B8000);
 static char CLIBuffer[82];
+static char VideoMemoryBuffer[MAX_OFFSET];
 
 #define SCREEN_OFFSET (current_row * MAX_COLUMNS + current_line_offset)
 
@@ -46,7 +47,7 @@ void HelloBoot()
 
 	for (i = 0; (i < len) && (i < MAX_OFFSET); i++)
 	{
-		gVideo[i].color = 10;
+		gVideo[i].color = text_color;
 		gVideo[i].c = boot[i];
 	}
     CursorPosition(i);
@@ -58,12 +59,69 @@ void ClearScreen()
 
     for (i = 0; i < MAX_OFFSET; i++)
     {
-        gVideo[i].color = 10;
+        gVideo[i].color = text_color;
         gVideo[i].c = ' ';
+        VideoMemoryBuffer[i] = ' ';
     }
-  /*  current_line_offset = 0;
-    CursorPosition(SCREEN_OFFSET);*/
+    current_line_offset = 0;
+    current_row = 0;
+    CursorPosition(SCREEN_OFFSET);
     CursorMove(0, 0);
+    line_size = 0;
+}
+
+void ClearScreenMode(CONSOLE_MODE mode)
+{
+    if (mode == NORMAL_MODE) {
+        int i;
+
+        for (i = 0; i < MAX_OFFSET; i++)
+        {
+            gVideo[i].color = text_color;
+            gVideo[i].c = ' ';
+            VideoMemoryBuffer[i] = ' ';
+        }
+        current_line_offset = 0;
+        current_row = 0;
+        CursorPosition(SCREEN_OFFSET);
+        CursorMove(0, 0);
+    }
+    else {
+        int i;
+
+        for (i = 0; i < MAX_OFFSET; i++)
+        {
+            gVideo[i].color = BLUE_COLOR;
+            gVideo[i].c = ' ';
+            VideoMemoryBuffer[i] = ' ';
+        }
+        gVideo[i].color = text_color;
+        current_line_offset = 0;
+        current_row = 0;
+        CursorPosition(SCREEN_OFFSET);
+        CursorMove(0, 0);
+    }
+}
+
+void EnterMode(CONSOLE_MODE mode) {
+
+    ConsoleMode = mode;
+
+    if (mode == EDIT_MODE) {
+        text_color = CYAN_COLOR;
+        CClearScreen(NULL, NULL, NULL);
+
+        int LastCursorPosition = 0;
+
+        RestoreScreen(&VideoMemoryBuffer, NULL, &LastCursorPosition);
+
+        CursorPosition(LastCursorPosition);
+    }
+    else 
+    {
+        text_color = 10;
+        CClearScreen(VideoMemoryBuffer, MAX_OFFSET, SCREEN_OFFSET);
+    }
 }
 
 void PutChar(KEYCODE C, int is_ext)
@@ -73,29 +131,34 @@ void PutChar(KEYCODE C, int is_ext)
 
 
         if (C == ENTER_KEY || C == ENTER_KEY2) {
-            CLIBuffer[current_line_offset] = '\0';
-            ParseCommand(CLIBuffer, strlen(CLIBuffer));
+            
+            
             current_row++;
             current_line_offset = 0;
             CursorPosition(SCREEN_OFFSET);
+            
+            if (ConsoleMode == NORMAL_MODE) {
+                CLIBuffer[line_size] = '\0';
+                ParseCommand(CLIBuffer, line_size);
+            }
+
             line_size = 0;
         }
         else if (C == BACKSPACE_KEY && current_line_offset > 0) {
             current_line_offset--;
-
-            /*gVideo[SCREEN_OFFSET].color = 10;
-            gVideo[SCREEN_OFFSET].c = ' ';*/
             
             // shift left
             for (int i = current_line_offset; i < line_size; i++) {
                 if (i == line_size - 1)
                 {
-                    gVideo[current_row * MAX_COLUMNS + i].color = 10;
+                    gVideo[current_row * MAX_COLUMNS + i].color = text_color;
                     gVideo[current_row * MAX_COLUMNS + i].c = ' ';
+                    VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = ' ';
                 }
                 else {
-                    gVideo[current_row * MAX_COLUMNS + i].color = 10;
+                    gVideo[current_row * MAX_COLUMNS + i].color = text_color;
                     gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i + 1].c;
+                    VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = VideoMemoryBuffer[current_row * MAX_COLUMNS + i + 1];
                 }
                
             }
@@ -106,14 +169,24 @@ void PutChar(KEYCODE C, int is_ext)
             line_size--;
             
         }
+        else if (C == KEY_ESCAPE && ConsoleMode == EDIT_MODE) {
+            EnterMode(NORMAL_MODE);
+        }
         else {
-            gVideo[SCREEN_OFFSET].color = 10;
+            gVideo[SCREEN_OFFSET].color = text_color;
 
-            if (C == KEY_SPACE || (C >= 'A' && C <= 'Z') || (C >= 'a' && C <= 'z') || (C >= '0' && C <= '9') || (C == '.' || C == ',' || C == ';' || C == '-'))
+            if (is_value(C))
             {
-                gVideo[SCREEN_OFFSET].c = (char)C;
-                CLIBuffer[current_line_offset++] = (char)C;
                 line_size++;
+                
+                // shift right
+                for (int i = line_size - 1; i > current_line_offset; i--) {
+                    gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i - 1].c;
+                    VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = VideoMemoryBuffer[current_row * MAX_COLUMNS + i - 1];
+                }
+                gVideo[SCREEN_OFFSET].c = (char)C;
+                VideoMemoryBuffer[SCREEN_OFFSET] = (char)C;
+                CLIBuffer[current_line_offset++] = (char)C;
             }
 
             if (current_line_offset >= MAX_COLUMNS) {
@@ -125,6 +198,7 @@ void PutChar(KEYCODE C, int is_ext)
             if (current_row >= MAX_LINES) {
                 ClearScreen();
                 current_row = 0;
+                line_size = 0;
             }
 
             CursorPosition(SCREEN_OFFSET);
@@ -155,144 +229,24 @@ void PutChar(KEYCODE C, int is_ext)
     }
 }
 
-
-
-//void PutChar(KEYCODE C, int is_ext)
-//{
-//    if (is_ext == 0) {
-//
-//
-//        gVideo[SCREEN_OFFSET].color = 10;
-//
-//        if (C == KEY_SPACE) {
-//            gVideo[SCREEN_OFFSET].c = C;
-//            ++current_line_offset;
-//        }
-//        else {
-//            gVideo[SCREEN_OFFSET].c = (char)C;
-//            ++current_line_offset;
-//        }
-//        
-//
-//        if (current_line_offset >= MAX_COLUMNS) {
-//            current_row++;
-//            current_line_offset = 0;
-//        }
-//
-//        if (current_row >= MAX_LINES)
-//        {
-//            ClearScreen(); // Clear the screen, or implement scrolling logic if desired
-//            current_row = 0; // Reset to the first row
-//        }
-//
-//        CLIBuffer[current_line_offset] = C;
-//        
-//        CursorPosition(SCREEN_OFFSET);
-//    }
-//    else if ( C == ENTER_KEY2 || C == ENTER_KEY)
-//    {
-//        CLIBuffer[current_line_offset] = '\0';
-//        //
-//        ParseCommand(CLIBuffer, strlen(CLIBuffer));
-//        
-//        current_row++;
-//        current_line_offset = 0;
-//
-//        last_enter_offset = SCREEN_OFFSET;
-//        CursorPosition(SCREEN_OFFSET);
-//        
-//        //ClearScreen();
-//       /* ClearScreen();
-//        char MSG[] = "You typed command: ";
-//        for (int i = 0; (i < strlen(MSG)) && (i < MAX_OFFSET); i++) {
-//            gVideo[i].color = 10;
-//            gVideo[i].c = MSG[i];
-//        }
-//        current_line_offset += strlen(MSG)+1;
-//        CursorPosition(current_line_offset);
-//        enter_was_typed = 1;*/
-//      /*  for (int i = 1; (i <= current_line_offset) && (i < MAX_OFFSET); i++) {
-//            gVideo[current_line_offset+80 + i].color = 10;
-//            gVideo[current_line_offset+80 + i].c = CLIBuffer[i];
-//
-//        }
-//        CursorPosition(current_line_offset + 80 + current_line_offset + 1);
-//        */
-//    }
-//    else if (C == KEY_BACKSPACE)
-//    {
-//        
-//       
-//       /* if (SCREEN_OFFSET-1 > last_enter_offset)
-//        {*/
-//            current_line_offset--;
-//            gVideo[SCREEN_OFFSET].color = 10;
-//            C = ' ';
-//            gVideo[SCREEN_OFFSET].c = C;
-//            CLIBuffer[current_line_offset] = C;
-//            CursorPosition(SCREEN_OFFSET);
-//        //}
-//       
-//        
-//    }
-//   
-//    else if (is_ext == 1 && C == KEY_UP) {
-//        /*current_line_offset*/
-//        current_row--;
-//        CursorPosition(SCREEN_OFFSET);
-//    }
-//    else if (is_ext == 1 && C == KEY_LEFT) {
-//        current_line_offset--;
-//        //current_row
-//        CursorPosition(SCREEN_OFFSET);
-//    }
-//    else if (is_ext == 1 && C == KEY_RIGHT) {
-//        current_line_offset++;
-//        //current_row
-//        CursorPosition(SCREEN_OFFSET);
-//    }
-//    else if (is_ext == 1 && C == KEY_DOWN) {
-//        //current_line_offset
-//        current_row++;
-//        CursorPosition(SCREEN_OFFSET);
-//    }
-//   
-//    
-//    
-//}
+void GetScreenState(void* VideoBuffer, DWORD BufferSize, int CursorPosition) 
+{
+    VideoBuffer = VideoMemoryBuffer;
+    BufferSize = MAX_OFFSET;
+    CursorPosition = SCREEN_OFFSET;
+}
 
 
 void PutString(char *Buffer)
 {
-    //size_t len = 0;
-    //while (len < MAX_OFFSET && Buffer[len]!=0)
-    //{
-    //    len++;
-    //}
 
-    //size_t i;
-    //for (i = 0; (i < len) && (i < MAX_OFFSET); i++)
-    //{
-    //    if (!is_format_char(Buffer[i])) {
-    //        gVideo[current_line_offset + i].color = 10;
-    //        gVideo[current_line_offset + i].c = Buffer[i];
-    //    }
-    //    else if (Buffer[i] == '\n') {
-    //        //CursorPosition(currentRow * MAX_COLUMNS + currentColumn);
-    //        column
-    //    }
-    //   
-    //}
-    //CursorPosition(current_line_offset + i);
-    //current_line_offset += i;
 }
 
 
 void ScreenDisplay(char* logBuffer, int color)
 {
-    int i, currentColumn = 0, currentRow = 0;
+    int i, currentColumn = current_line_offset, currentRow = current_row;
 
-    // Ensure the logBuffer is not NULL
     if (logBuffer == NULL)
         return;
 
@@ -301,48 +255,43 @@ void ScreenDisplay(char* logBuffer, int color)
     {
         if (logBuffer[i] == '\n')
         {
-            // Move to the next line
             currentRow++;
-            currentColumn = 0; // Reset column to the start of the line
+            currentColumn = 0; 
 
-            // If we've reached the maximum number of rows, clear the screen or scroll
             if (currentRow >= MAX_LINES)
             {
-                ClearScreen(); // Clear the screen, or implement scrolling logic if desired
-                currentRow = 0; // Reset to the first row
+                ClearScreen();
+                currentRow = 0; 
             }
         }
         else
         {
-            // Set the character and its color in video memory
-            int pos = currentRow * MAX_COLUMNS + currentColumn; // Calculate the position in video memory
+            int pos = currentRow * MAX_COLUMNS + currentColumn; 
 
-            // Ensure we don't write beyond the screen buffer
             if (pos < MAX_OFFSET)
             {
                 gVideo[pos].c = logBuffer[i];
                 gVideo[pos].color = color;
 
                 currentColumn++;
-                // If we reach the end of a row, move to the next line
+                
                 if (currentColumn >= MAX_COLUMNS)
                 {
-                    currentColumn = 0; // Reset column to start
-                    currentRow++; // Move to the next row
+                    currentColumn = 0; 
+                    currentRow++;
                 }
 
-                // If we've reached the maximum number of rows, clear the screen or scroll
+               
                 if (currentRow >= MAX_LINES)
                 {
-                    ClearScreen(); // Clear the screen, or implement scrolling logic if desired
-                    currentRow = 0; // Reset to the first row
+                    ClearScreen(); 
+                    currentRow = 0; 
                 }
             }
         }
     }
-
-    // Move cursor to the last position after writing
+    current_row++;
+    current_line_offset = 0;
     CursorPosition(SCREEN_OFFSET);
-    current_line_offset = currentRow * MAX_COLUMNS + currentColumn + 1;
 }
 

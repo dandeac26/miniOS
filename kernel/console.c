@@ -1,33 +1,57 @@
-
 #include "console.h"
-#include "screen.h"
 
-char Cmd1[] = "cls";
 
-void RunCommand(const char *cmd, size_t size)
-{
-    /*int i;
-    for (i = 0; (i < size) && (i < MAX_OFFSET); i++)
-    {
-        gVideo[i].color = 10;
-        gVideo[i].c = Buffer[i];
-    }
-    CursorPosition(i);*/
-    
-    //LogSerialAndScreen("aaaaaaaaaaaaaaa %c", cmd[0]);
-            
-    /*int isCmd1 = true;
-    for (size_t i = 0; i < size; i++) {
-        if (Buffer[i] != Cmd1[i]) {
-            isCmd1 = false;
-            break;
+char LastVideoBuffer[MAX_OFFSET];
+int saved_previous_state = true;
+int LastCursorPosition = 0;
+
+
+int GetCommandNumber(const char* cmd, size_t size) {
+
+    const char CommandList[][10] = { "cls", "edit", "time"};  // Add more commands as needed
+    int numCommands = sizeof(CommandList) / sizeof(CommandList[0]);
+
+    for (int i = 0; i < numCommands; i++) {
+        int j = 0;
+
+        // Compare each character in cmd with the command in Cmds
+        while (j < size && CommandList[i][j] != '\0' && cmd[j] == CommandList[i][j]) {
+            j++;
+        }
+
+        // Check if the loop reached the end of both strings, indicating a match
+        if (j == size && CommandList[i][j] == '\0') {
+            return i + 1;  // Return the command number
         }
     }
-    if (isCmd1 == true) {
-        ScreenDisplay("CLS WAS RAN!", 10);
-    }*/
-    
-    
+    return 0;
+}
+
+
+void PrintTimeTillBoot() {
+    int minutes = 0, seconds = 0;
+    GetTimeTillBoot(&minutes, &seconds);
+    LogSerialAndScreen("Time since boot: %d min:%ds\n", minutes, seconds);
+}
+
+
+void RunCommand(int cmd)
+{
+    switch (cmd)
+    {
+    case 1: // cls
+         ClearScreen();
+        break;
+    case 2: // edit
+         EnterMode(EDIT_MODE);
+        // ClearScreen();
+        break;
+    case 3:
+        PrintTimeTillBoot();
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -35,10 +59,12 @@ int is_format_char(char c) {
     return c == '\t' || c == '\n' || c == '\r';
 }
 
+int is_value(char C) {
+    return (C == KEY_SPACE || (C >= 'A' && C <= 'Z') || (C >= 'a' && C <= 'z') || (C >= '0' && C <= '9') || (C == '.' || C == ',' || C == ';' || C == '-' || C == '\''));
+}
 
 
-
-void ParseCommand(char Buffer[], size_t size) {
+void ParseCommand(char* Buffer, size_t size) {
     int start = 0;
 
     // Skip leading whitespace or chars
@@ -46,38 +72,60 @@ void ParseCommand(char Buffer[], size_t size) {
         start++;
     }
 
-    
     size_t cmdLength = 0;
-    char Command[MAX_OFFSET];
-    while (start < size && !is_format_char(Buffer[start]) && Buffer[start] != ' ' && cmdLength < size - 1) {
-        Command[cmdLength] = Buffer[start];
-        cmdLength++;
+    char Command[MAX_COLUMNS];
+
+    while (start < size && is_value(Buffer[start])) {
+        Command[cmdLength++] = Buffer[start];
         start++;
     }
 
-    Command[cmdLength] = '\0';   
-    
-    //ScreenDisplay(Command, 10);
-    RunCommand(Command, cmdLength);
+    Command[cmdLength] = '\0';
+
+    RunCommand(GetCommandNumber(Command, cmdLength));
 }
 
 
-void CClearScreen(void* VideoMemoryBuffer,   // if NULL don't store the previous content
-                  DWORD   BufferSize,
-                  int* CursorPosition // if NULL don't save cursor position
+void CClearScreen(
+    char*   VideoMemoryBuffer,   // if NULL don't store the previous content
+    DWORD   BufferSize,
+    int*    CursorPosition // if NULL don't save cursor position
+) 
+{
+    if (VideoMemoryBuffer != NULL) {
+        for (size_t i = 0; i < BufferSize; i++) {
+            if(is_value(VideoMemoryBuffer[i]))
+                LastVideoBuffer[i] = VideoMemoryBuffer[i];
+            else {
+                LastVideoBuffer[i] = ' ';
+            }
+        }
+        saved_previous_state = true;
+    }
+    else
+    {
+        saved_previous_state = false;
+    }
 
-) {
 
+    if (CursorPosition != NULL) {
+        LastCursorPosition = CursorPosition;
+    }
+
+    ClearScreen();
 }
 
 
 void RestoreScreen(
 
-    void* VideoMemoryBuffer,
+    char* VideoMemoryBuffer,
 
     DWORD   BufferSize,
 
     int     CursorPosition
-) {
-
+) 
+{
+    VideoMemoryBuffer = LastVideoBuffer;
+    BufferSize = MAX_OFFSET;
+    CursorPosition = LastCursorPosition;
 }

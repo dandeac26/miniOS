@@ -30,6 +30,6 @@ void ClearScreen();
 void PutChar(KEYCODE C, int is_ext);
 void PutString(char* String);
 void PutStringLine(char* String, int Line);
-
+void EnterMode(CONSOLE_MODE mode);
 
 #endif // _SCREEN_H_
