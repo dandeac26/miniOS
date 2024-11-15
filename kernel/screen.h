@@ -4,6 +4,7 @@
 #include "main.h"
 #include "scancode.h"
 #include "console.h"
+#include "string.h"
 
 #define MAX_LINES       25
 #define MAX_COLUMNS     80

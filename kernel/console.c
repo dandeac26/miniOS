@@ -1,10 +1,9 @@
 #include "console.h"
 
-
 char LastVideoBuffer[MAX_OFFSET];
 int saved_previous_state = true;
-int LastCursorPosition = 0;
-
+int LastCursorRow = 0;
+int LastCursorCol = 0;
 
 int GetCommandNumber(const char* cmd, size_t size) {
 
@@ -90,27 +89,30 @@ void ParseCommand(char* Buffer, size_t size) {
 void CClearScreen(
     char*   VideoMemoryBuffer,   // if NULL don't store the previous content
     DWORD   BufferSize,
-    int*    CursorPosition // if NULL don't save cursor position
+    int    row, int col // if NULL don't save cursor position
 ) 
 {
     if (VideoMemoryBuffer != NULL) {
-        for (size_t i = 0; i < BufferSize; i++) {
-            if(is_value(VideoMemoryBuffer[i]))
-                LastVideoBuffer[i] = VideoMemoryBuffer[i];
-            else {
+        for (int i = 0; i < MAX_OFFSET; i++) {
+            //if(is_value(VideoMemoryBuffer[i]))
+            LastVideoBuffer[i] = VideoMemoryBuffer[i];
+           /* else {
                 LastVideoBuffer[i] = ' ';
-            }
+            }*/
         }
         saved_previous_state = true;
+        
     }
     else
     {
+        LogSerialAndScreen("VIDEOMEM IS NULL!\n");
         saved_previous_state = false;
     }
 
 
-    if (CursorPosition != NULL) {
-        LastCursorPosition = CursorPosition;
+    if (row != NULL && col != NULL) {
+        LastCursorRow = row;
+        LastCursorCol = col;
     }
 
     ClearScreen();
@@ -123,10 +125,12 @@ void RestoreScreen(
 
     DWORD   BufferSize,
 
-    int     CursorPosition
+    int*     row,
+    int*     col
 ) 
 {
-    VideoMemoryBuffer = LastVideoBuffer;
+    *VideoMemoryBuffer = &LastVideoBuffer;
     BufferSize = MAX_OFFSET;
-    CursorPosition = LastCursorPosition;
+    *row = LastCursorRow;
+    *col = LastCursorCol;
 }

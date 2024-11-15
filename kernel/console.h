@@ -35,7 +35,7 @@ static int line_size = 0;
 static int text_color = 10;
 
 
-void CClearScreen(char* VideoMemoryBuffer, DWORD BufferSize, int* CursorPosition);
+void CClearScreen(char* VideoMemoryBuffer, DWORD BufferSize, int row, int col);
 
 
 void RestoreScreen(
@@ -44,7 +44,8 @@ void RestoreScreen(
 
     DWORD   BufferSize,
 
-    int     CursorPosition
+    int* row,
+    int* col
 
 );
 

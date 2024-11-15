@@ -110,18 +110,30 @@ void EnterMode(CONSOLE_MODE mode)
 
     if (mode == EDIT_MODE) {
         text_color = CYAN_COLOR;
-        CClearScreen(NULL, NULL, NULL);
+        CClearScreen(NULL, NULL, NULL, NULL);
 
-        int LastCursorPosition = 0;
+        int row, col = 0;
 
-        RestoreScreen(&VideoMemoryBuffer, NULL, &LastCursorPosition);
+        RestoreScreen(VideoMemoryBuffer, NULL, &row, &col);
+        for (int i = 0; i < MAX_OFFSET; i++)
+        {
+            gVideo[i].color = text_color;
+            gVideo[i].c = VideoMemoryBuffer[i];
+        }
+        
+        current_line_offset = col;
+        current_row = row;
 
-        CursorPosition(LastCursorPosition);
+        CursorPosition(SCREEN_OFFSET);
     }
     else 
     {
         text_color = 10;
-        CClearScreen(VideoMemoryBuffer, MAX_OFFSET, SCREEN_OFFSET);
+        for (int i = 0; i < MAX_OFFSET; i++)
+        {
+            VideoMemoryBuffer[i] = gVideo[i].c;
+        }
+        CClearScreen(VideoMemoryBuffer, MAX_OFFSET, current_row, current_line_offset);
     }
 }
 
