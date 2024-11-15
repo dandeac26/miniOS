@@ -103,7 +103,8 @@ void ClearScreenMode(CONSOLE_MODE mode)
     }
 }
 
-void EnterMode(CONSOLE_MODE mode) {
+void EnterMode(CONSOLE_MODE mode)
+{
 
     ConsoleMode = mode;
 

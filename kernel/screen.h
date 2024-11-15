@@ -20,6 +20,8 @@ typedef struct _SCREEN
 }SCREEN, *PSCREEN;
 #pragma pack(pop)
 
+
+
 static int current_line_offset = 0;
 static int current_row = 0;
 static int last_enter_offset = 0;
@@ -30,6 +32,6 @@ void ClearScreen();
 void PutChar(KEYCODE C, int is_ext);
 void PutString(char* String);
 void PutStringLine(char* String, int Line);
-void EnterMode(CONSOLE_MODE mode);
+
 
 #endif // _SCREEN_H_

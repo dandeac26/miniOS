@@ -8,20 +8,18 @@ int LastCursorPosition = 0;
 
 int GetCommandNumber(const char* cmd, size_t size) {
 
-    const char CommandList[][10] = { "cls", "edit", "time"};  // Add more commands as needed
+    const char CommandList[][10] = { "cls", "edit", "time"}; 
     int numCommands = sizeof(CommandList) / sizeof(CommandList[0]);
 
     for (int i = 0; i < numCommands; i++) {
         int j = 0;
 
-        // Compare each character in cmd with the command in Cmds
         while (j < size && CommandList[i][j] != '\0' && cmd[j] == CommandList[i][j]) {
             j++;
         }
 
-        // Check if the loop reached the end of both strings, indicating a match
         if (j == size && CommandList[i][j] == '\0') {
-            return i + 1;  // Return the command number
+            return i + 1;
         }
     }
     return 0;
@@ -43,13 +41,16 @@ void RunCommand(int cmd)
          ClearScreen();
         break;
     case 2: // edit
-         EnterMode(EDIT_MODE);
-        // ClearScreen();
+         EnterMode(EDIT_MODE); /// For some reason vede functia fara sa o pun in header ??
         break;
     case 3:
         PrintTimeTillBoot();
         break;
+    case 0:
+        LogSerialAndScreen("Not a valid command!\n");
+        break;
     default:
+        
         break;
     }
 }
@@ -75,7 +76,7 @@ void ParseCommand(char* Buffer, size_t size) {
     size_t cmdLength = 0;
     char Command[MAX_COLUMNS];
 
-    while (start < size && is_value(Buffer[start])) {
+    while (start < size && is_value(Buffer[start]) && Buffer[start] != ' ') {
         Command[cmdLength++] = Buffer[start];
         start++;
     }
