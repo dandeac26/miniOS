@@ -2,8 +2,6 @@
 #define _CONSOLE_H_
 
 #include "main.h"
-#include <stdlib.h>  // For malloc and free
-#include <ctype.h> 
 
 #define BRIGHT_WHITE_COLOR          0xF
 #define YELLOW_COLOR                0xE
@@ -34,7 +32,7 @@ void CClearScreen(
 
 
 void ParseCommand(char Buffer[], size_t size);
-
+int is_format_char(char c);
 void RestoreScreen(
 
     void* VideoMemoryBuffer,

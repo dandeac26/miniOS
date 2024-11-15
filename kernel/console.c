@@ -2,7 +2,9 @@
 #include "console.h"
 #include "screen.h"
 
-void RunCommand(char Buffer[], size_t size)
+char Cmd1[] = "cls";
+
+void RunCommand(const char *cmd, size_t size)
 {
     /*int i;
     for (i = 0; (i < size) && (i < MAX_OFFSET); i++)
@@ -11,40 +13,52 @@ void RunCommand(char Buffer[], size_t size)
         gVideo[i].c = Buffer[i];
     }
     CursorPosition(i);*/
-
+    
+    //LogSerialAndScreen("aaaaaaaaaaaaaaa %c", cmd[0]);
+            
+    /*int isCmd1 = true;
+    for (size_t i = 0; i < size; i++) {
+        if (Buffer[i] != Cmd1[i]) {
+            isCmd1 = false;
+            break;
+        }
+    }
+    if (isCmd1 == true) {
+        ScreenDisplay("CLS WAS RAN!", 10);
+    }*/
+    
     
 }
 
 
+int is_format_char(char c) {
+    return c == '\t' || c == '\n' || c == '\r';
+}
+
+
+
+
 void ParseCommand(char Buffer[], size_t size) {
-    // Skip leading whitespace
-    size_t start = 0;
-    while (start < size && isspace(Buffer[start])) {
+    int start = 0;
+
+    // Skip leading whitespace or chars
+    while (start < size && (is_format_char(Buffer[start]) || Buffer[start] == ' ')) {
         start++;
     }
 
-    // Find the end of the first command
-    size_t end = start;
-    while (end < size && !isspace(Buffer[end])) {
-        end++;
+    
+    size_t cmdLength = 0;
+    char Command[MAX_OFFSET];
+    while (start < size && !is_format_char(Buffer[start]) && Buffer[start] != ' ' && cmdLength < size - 1) {
+        Command[cmdLength] = Buffer[start];
+        cmdLength++;
+        start++;
     }
 
-    // Calculate the length of the command and allocate memory
-    size_t cmdLength = end - start;
-    char* firstCmd = malloc(sizeof(char) * (cmdLength + 1));  // +1 for null terminator
-
-    // Copy the command into the allocated memory
-    for (size_t i = 0; i < cmdLength; i++) {
-        firstCmd[i] = Buffer[start + i];
-    }
-    firstCmd[cmdLength] = '\0';  // Null-terminate the command
-
-    RunCommand(firstCmd, strlen(firstCmd));
-    // Print the command for testing (or use it as needed)
-  /*  printf("Extracted Command: %s\n", firstCmd);*/
-
-    // Free the allocated memory when done
-    free(firstCmd);
+    Command[cmdLength] = '\0';   
+    
+    //ScreenDisplay(Command, 10);
+    RunCommand(Command, cmdLength);
 }
 
 

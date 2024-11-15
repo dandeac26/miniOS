@@ -5,7 +5,7 @@
 
 /// DEFINES
 
-#define IDT_MAX_DESCRIPTORS 256// my value
+#define IDT_MAX_DESCRIPTORS 256 // my value
 #define IDT_SIZE 256 // osdev value
 #define TRUE 1
 
@@ -39,19 +39,6 @@ typedef struct _IDT_ENTRY
 } idt_entry_t;
 #pragma pack(pop)
 
-//#pragma pack(push)
-//#pragma pack(1)
-//typedef struct {
-//	__int16    isr_low;      // The lower 16 bits of the ISR's address
-//	__int16    kernel_cs;    // The GDT segment selector that the CPU will load into CS before calling the ISR
-//	__int8	    ist;          // The IST in the TSS that the CPU will load into RSP; set to zero for now
-//	__int8     attributes;   // Type and attributes; see the IDT page
-//	__int16    isr_mid;      // The higher 16 bits of the lower 32 bits of the ISR's address
-//	__int32    isr_high;     // The higher 32 bits of the ISR's address
-//	__int32    reserved;     // Set to zero
-//} idt_entry_t;
-//#pragma pack(pop)
-
 
 #pragma pack(push)
 #pragma pack(1)
@@ -74,19 +61,6 @@ typedef struct {
 } INTERRUPT_STACK_COMPLETE;
 #pragma pack(pop)
 
-
-
-//#pragma pack(push)
-//#pragma pack(1)
-//typedef struct {
-//    __int32 error_code;
-//    void* rip;               // Return Instruction Pointer (RIP)
-//    __int16 cs;              // Code Segment Selector (CS)
-//    __int64 rflags;          // RFLAGS register
-//    void* rsp;              // Stack Pointer (RSP)
-//    __int16 ss;              // Stack Segment Selector (SS)
-//} INTERRUPT_STACK_COMPLETE;
-//#pragma pack(pop)
 
 #pragma pack(push)
 #pragma pack(1)
@@ -140,10 +114,11 @@ void InterruptCommonHandler(
     INTERRUPT_STACK_COMPLETE* StackPointer //  // Pointer to Stack Pointer After Transfer to Handler (Fig 6-9)
 );
 
-//__declspec(noreturn) void exception_handler(void);
+
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags);
 void idt_init(void);
 
 void keyboard_interrupt_handler();
-#endif // !_INTERRUPTS_H_
+
+#endif _INTERRUPTS_H_
 

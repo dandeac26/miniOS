@@ -84,12 +84,15 @@ void KernelMain()
     
     initPIT();  // Timer programming
 
+
+    __outbyte(0xAE, 0x64);
+    __outbyte(0x20, 0x64);
     IRQ_clear_mask(1);       // Enable KB
 
     //LogSerialAndScreen("PIC initialized, IRQ0 and IRQ1 unmasked");
     //__magic();
     //ClearScreen();
-   
+
     while (1) {
        //LogSerialAndScreen("\nPIT_cnt: %u", read_pit_count());
        //__magic();

@@ -118,34 +118,80 @@ void InterruptCommonHandler(
     }
 }
 
+static int is_extended = 0;
 
-
-void keyboard_interrupt_handler_c()
-{
+void keyboard_interrupt_handler_c() {
     unsigned char scancode;
+    scancode = __inbyte(0x60);  // Read from port 0x60
+    
+    if (scancode == 0xE0 || scancode == 0xE1) {
+        // If it's an extended key prefix, set the flag and return
+        is_extended = 1;
+        __send_EOI();
+        return;
+    }
 
-    scancode = __inbyte(0x60); // Read from port 0x60, where the scancode is placed
+    KEYCODE key;
+
+    if (is_extended) {
+        // Handle as an extended scancode
+        key = _kkybrd_scancode_ext[scancode];
+        if (key != KEY_UNKNOWN) {
+            PutChar(key, is_extended);  // Second argument indicates if it's extended
+        }
+        is_extended = 0;  // Reset the flag
+    }
+    else {
+        // Handle as a standard scancode
+        key = _kkybrd_scancode_std[scancode];
+        if (key != KEY_UNKNOWN) {
+            PutChar(key, is_extended);  // Second argument indicates if it's extended
+        }
+    }
 
     
-    if (scancode & 0x80) {                                          // Check if it's an extended key
-        
-        unsigned short key = _kkybrd_scancode_ext[scancode - 0x80]; // It's an extended key, find in _kkybrd_scancode_ext
-        if (key != KEY_UNKNOWN) {
-            //LogSerialAndScreen("\n%c", key);                              // Log the key
-            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
-            PutChar((char)key);
-        }
-    }
-    else {                                                          
-        
-        unsigned short key = _kkybrd_scancode_std[scancode];        // Standard scancode, find in _kkybrd_scancode_std
-        if (key != KEY_UNKNOWN) {
-            //LogSerialAndScreen("\n%c", key);
-            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
 
-            PutChar((char)key);
-        }
-    }
-
-    __send_EOI();
+    __send_EOI();  // Send end-of-interrupt signal
 }
+
+
+//void keyboard_interrupt_handler_c()
+//{
+//    __int16 scancode;
+//
+//    scancode = __inbyte(0x60); // Read from port 0x60, where the scancode is placed
+//
+//    
+//    if (scancode & 0xE0) {                                          // Check if it's an extended key
+//        
+//        KEYCODE key = _kkybrd_scancode_ext[scancode - 0xE0]; // It's an extended key, find in _kkybrd_scancode_ext
+//        if (key != KEY_UNKNOWN) {
+//            //LogSerialAndScreen("\n%c", key);                              // Log the key
+//            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
+//            PutChar(key, 1);
+//            
+//        }
+//    }
+//    else if (scancode & 0xE1) {                                          // Check if it's an extended key
+//
+//        KEYCODE key = _kkybrd_scancode_ext[scancode - 0xE1]; // It's an extended key, find in _kkybrd_scancode_ext
+//        if (key != KEY_UNKNOWN) {
+//            //LogSerialAndScreen("\n%c", key);                              // Log the key
+//            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
+//            PutChar(key, 1);
+//
+//        }
+//    }
+//    else {                                                          
+//        
+//        KEYCODE key = _kkybrd_scancode_std[scancode];        // Standard scancode, find in _kkybrd_scancode_std
+//        if (key != KEY_UNKNOWN) {
+//            //LogSerialAndScreen("\n%c", key);
+//            //ScreenDisplay(key, BRIGHT_WHITE_COLOR);
+//
+//            PutChar(key, 0);
+//        }
+//    }
+//
+//    __send_EOI();
+//}
