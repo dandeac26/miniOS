@@ -31,11 +31,11 @@ typedef enum _CONSOLE_MODE {
 }CONSOLE_MODE;
 
 static CONSOLE_MODE ConsoleMode = NORMAL_MODE;
-static int line_size = 0;
+
 static int text_color = 10;
 
-
-void CClearScreen(char* VideoMemoryBuffer, DWORD BufferSize, int row, int col);
+#define MAX_LINES 25
+void CClearScreen(char* VideoMemoryBuffer, DWORD BufferSize, int row, int current_line_offset[MAX_LINES], int line_size[MAX_LINES], int new_line[MAX_LINES]);
 
 
 void RestoreScreen(
@@ -45,7 +45,8 @@ void RestoreScreen(
     DWORD   BufferSize,
 
     int* row,
-    int* col
+
+    int* current_line_offset[MAX_LINES], int* line_size[MAX_LINES], int* new_line[MAX_LINES]
 
 );
 

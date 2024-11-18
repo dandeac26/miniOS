@@ -89,33 +89,33 @@ void ParseCommand(char* Buffer, size_t size) {
 void CClearScreen(
     char*   VideoMemoryBuffer,   // if NULL don't store the previous content
     DWORD   BufferSize,
-    int    row, int col // if NULL don't save cursor position
+    int    row, int current_line_offset[MAX_LINES], int line_size[MAX_LINES], int new_line[MAX_LINES]
 ) 
 {
-    if (VideoMemoryBuffer != NULL) {
-        for (int i = 0; i < MAX_OFFSET; i++) {
-            //if(is_value(VideoMemoryBuffer[i]))
-            LastVideoBuffer[i] = VideoMemoryBuffer[i];
-           /* else {
-                LastVideoBuffer[i] = ' ';
-            }*/
-        }
-        saved_previous_state = true;
-        
-    }
-    else
-    {
-        LogSerialAndScreen("VIDEOMEM IS NULL!\n");
-        saved_previous_state = false;
-    }
+    //if (VideoMemoryBuffer != NULL) {
+    //    for (int i = 0; i < MAX_OFFSET; i++) {
+    //        //if(is_value(VideoMemoryBuffer[i]))
+    //        LastVideoBuffer[i] = VideoMemoryBuffer[i];
+    //       /* else {
+    //            LastVideoBuffer[i] = ' ';
+    //        }*/
+    //    }
+    //    saved_previous_state = true;
+    //    
+    //}
+    //else
+    //{
+    //    LogSerialAndScreen("VIDEOMEM IS NULL!\n");
+    //    saved_previous_state = false;
+    //}
 
 
-    if (row != NULL && col != NULL) {
-        LastCursorRow = row;
-        LastCursorCol = col;
-    }
+    //if (row != NULL && col != NULL) {
+    //    LastCursorRow = row;
+    //    LastCursorCol = col;
+    //}
 
-    ClearScreen();
+    //ClearScreen();
 }
 #pragma optimize("", on)
 
@@ -126,11 +126,11 @@ void RestoreScreen(
     DWORD   BufferSize,
 
     int*     row,
-    int*     col
+    int* current_line_offset[MAX_LINES], int* line_size[MAX_LINES], int* new_line[MAX_LINES]
 ) 
 {
-    *VideoMemoryBuffer = &LastVideoBuffer;
-    BufferSize = MAX_OFFSET;
-    *row = LastCursorRow;
-    *col = LastCursorCol;
+    //*VideoMemoryBuffer = &LastVideoBuffer;
+    //BufferSize = MAX_OFFSET;
+    //*row = LastCursorRow;
+    ////*col = LastCursorCol;
 }

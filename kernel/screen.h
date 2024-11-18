@@ -23,9 +23,12 @@ typedef struct _SCREEN
 
 
 
-static int current_line_offset = 0;
+static int current_line_offset[MAX_LINES] = { 0 };
 static int current_row = 0;
 static int last_enter_offset = 0;
+static int line_size[MAX_LINES] = { 0 };
+static int new_line[MAX_LINES] = { false };
+
 void HelloBoot();
 
 void SetColor(BYTE Color);
