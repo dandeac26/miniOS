@@ -85,7 +85,7 @@ void ParseCommand(char* Buffer, size_t size) {
     RunCommand(GetCommandNumber(Command, cmdLength));
 }
 
-
+#pragma optimize("", off)
 void CClearScreen(
     char*   VideoMemoryBuffer,   // if NULL don't store the previous content
     DWORD   BufferSize,
@@ -117,7 +117,7 @@ void CClearScreen(
 
     ClearScreen();
 }
-
+#pragma optimize("", on)
 
 void RestoreScreen(
 

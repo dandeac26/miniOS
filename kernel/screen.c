@@ -168,7 +168,8 @@ void PutChar(KEYCODE C, int is_ext)
                     gVideo[current_row * MAX_COLUMNS + i].c = ' ';
                     VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = ' ';
                 }
-                else {
+                else 
+                {
                     gVideo[current_row * MAX_COLUMNS + i].color = text_color;
                     gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i + 1].c;
                     VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = VideoMemoryBuffer[current_row * MAX_COLUMNS + i + 1];
@@ -221,6 +222,7 @@ void PutChar(KEYCODE C, int is_ext)
     else if (is_ext == 1) {
         // Handling arrow keys
         if (C == KEY_UP && current_row > 0 && ConsoleMode == EDIT_MODE) {
+
             current_row--;
         }
         else if (C == KEY_DOWN && current_row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE) {
