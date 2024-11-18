@@ -3,6 +3,8 @@
 
 #include <intrin.h>
 
+#define true 1
+#define false 0
 //
 // default types
 //
@@ -34,3 +36,9 @@ void __send_EOI(void);
 void __pit_isr_stub_handler(void);
 void __kb_isr_stub_handler(void);
 #endif // _MAIN_H_
+
+void
+LogSerialAndScreen(
+    char* FormatBuffer,
+    ...
+);

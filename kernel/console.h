@@ -2,8 +2,8 @@
 #define _CONSOLE_H_
 
 #include "main.h"
-#include <stdlib.h>  // For malloc and free
-#include <ctype.h> 
+#include "screen.h"
+#include "interrupts.h"
 
 #define BRIGHT_WHITE_COLOR          0xF
 #define YELLOW_COLOR                0xE
@@ -22,28 +22,35 @@
 #define BLUE_COLOR                  0x1
 #define BLACK_COLOR                 0x0
 
-void CClearScreen(
-
-    void* VideoMemoryBuffer,   // if NULL don't store the previous content
-
-    DWORD   BufferSize,
-
-    int* CursorPosition // if NULL don't save cursor position
-
-    );
+#define BACKSPACE_KEY 8
 
 
-void ParseCommand(char Buffer[], size_t size);
+typedef enum _CONSOLE_MODE {
+    EDIT_MODE = 0,
+    NORMAL_MODE = 1
+}CONSOLE_MODE;
+
+static CONSOLE_MODE ConsoleMode = NORMAL_MODE;
+static int line_size = 0;
+static int text_color = 10;
+
+
+void CClearScreen(char* VideoMemoryBuffer, DWORD BufferSize, int row, int col);
+
 
 void RestoreScreen(
 
-    void* VideoMemoryBuffer,
+    char* VideoMemoryBuffer,
 
     DWORD   BufferSize,
 
-    int     CursorPosition
+    int* row,
+    int* col
 
 );
 
+
+void ParseCommand(char* Buffer, size_t size);
+int is_format_char(char c);
 
 #endif _CONSOLE_H_

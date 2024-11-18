@@ -19,10 +19,8 @@ LogSerialAndScreen(
     va_start(va, FormatBuffer);
     cl_vsnprintf(logBuffer, LOG_BUF_MAX_SIZE, FormatBuffer, va);
 
-    // after call logBuffer will contain formatted buffer
-
     Log(logBuffer); // log through serial
-    ScreenDisplay(logBuffer, 10); // display on screen - you will need to implement this part in `screen.c`
+    ScreenDisplay(logBuffer, 10);
 }
 
 void InterruptExamples() {
@@ -52,8 +50,7 @@ void initPIT() {
 
 void KernelMain()
 {
-    //__magic();    // break into BOCHS
-    
+
     __enableSSE();  // only for demo; in the future will be called from __init.asm
 
     ClearScreen();
@@ -64,14 +61,11 @@ void KernelMain()
 
     HelloBoot();
 
-    //__magic();
-
     ClearScreen();
 
     //LogSerialAndScreen("Hello from main");
    
     //InterruptExamples(); // if this ran will halt
-
     //__magic();
     //ClearScreen();
     
@@ -84,20 +78,17 @@ void KernelMain()
     
     initPIT();  // Timer programming
 
+
+    __outbyte(0xAE, 0x64);
+    __outbyte(0x20, 0x64);
     IRQ_clear_mask(1);       // Enable KB
 
-    //LogSerialAndScreen("PIC initialized, IRQ0 and IRQ1 unmasked");
-    //__magic();
-    //ClearScreen();
-   
     while (1) {
-       //LogSerialAndScreen("\nPIT_cnt: %u", read_pit_count());
-       //__magic();
-       //ClearScreen();
+        
     }
-    // TODO!!! Keyboard programming
+    // Keyboard programming - DONE
 
-    // TODO!!! Implement a simple console
+    // Implement a simple console - Done
 
     // TODO!!! read disk sectors using PIO mode ATA
 
