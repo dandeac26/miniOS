@@ -43,5 +43,8 @@ void PutChar(KEYCODE C, int is_ext);
 void PutString(char* String);
 void PutStringLine(char* String, int Line);
 
+void PutCharExt(KEYCODE C);
+void PutCharStd(KEYCODE C);
+
 void InitScreen();
 #endif // _SCREEN_H_
