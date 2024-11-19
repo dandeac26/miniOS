@@ -23,33 +23,17 @@
 #define BLACK_COLOR                 0x0
 
 #define BACKSPACE_KEY 8
-
+#define MAX_LINES 25
 
 typedef enum _CONSOLE_MODE {
     EDIT_MODE = 0,
     NORMAL_MODE = 1
 }CONSOLE_MODE;
 
+
 static CONSOLE_MODE ConsoleMode = NORMAL_MODE;
 
 static int text_color = 10;
-
-#define MAX_LINES 25
-void CClearScreen(char* VideoMemoryBuffer, DWORD BufferSize, int row, int current_line_offset[MAX_LINES], int line_size[MAX_LINES], int new_line[MAX_LINES]);
-
-
-void RestoreScreen(
-
-    char* VideoMemoryBuffer,
-
-    DWORD   BufferSize,
-
-    int* row,
-
-    int* current_line_offset[MAX_LINES], int* line_size[MAX_LINES], int* new_line[MAX_LINES]
-
-);
-
 
 void ParseCommand(char* Buffer, size_t size);
 int is_format_char(char c);
