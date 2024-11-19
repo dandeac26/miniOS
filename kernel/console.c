@@ -85,7 +85,7 @@ void ParseCommand(char* Buffer, size_t size) {
     RunCommand(GetCommandNumber(Command, cmdLength));
 }
 
-
+#pragma optimize("", off)
 void CClearScreen(
     char*   VideoMemoryBuffer,   // if NULL don't store the previous content
     DWORD   BufferSize,
@@ -94,19 +94,16 @@ void CClearScreen(
 {
     if (VideoMemoryBuffer != NULL) {
         for (int i = 0; i < MAX_OFFSET; i++) {
-            //if(is_value(VideoMemoryBuffer[i]))
             LastVideoBuffer[i] = VideoMemoryBuffer[i];
-           /* else {
-                LastVideoBuffer[i] = ' ';
-            }*/
         }
-        saved_previous_state = true;
-        
+
+    //    saved_previous_state = true;
+    //    
     }
     else
     {
-        LogSerialAndScreen("VIDEOMEM IS NULL!\n");
-        saved_previous_state = false;
+    //    //LogSerialAndScreen("VIDEOMEM IS NULL!\n");
+    //    saved_previous_state = false;
     }
 
 
@@ -117,6 +114,7 @@ void CClearScreen(
 
     ClearScreen();
 }
+#pragma optimize("", on)
 
 
 void RestoreScreen(
