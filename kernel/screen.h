@@ -22,12 +22,18 @@ typedef struct _SCREEN
 #pragma pack(pop)
 
 
+typedef struct _SCREEN_STATE
+{
+    int col[MAX_LINES]; // for each line say where the cursor is on the columns
+    int row; // current row of cursor
+    int line_size[MAX_LINES]; // each line 's size
+    int new_line[MAX_LINES];  // used to make difference between empty lines and new lines
+    char Buffer[MAX_OFFSET];
+}SCREEN_STATE;
 
-static int current_line_offset[MAX_LINES] = { 0 };
-static int current_row = 0;
-static int last_enter_offset = 0;
-static int line_size[MAX_LINES] = { 0 };
-static int new_line[MAX_LINES] = { false };
+static SCREEN_STATE NormalScreen;
+static SCREEN_STATE EditScreen;
+static SCREEN_STATE CurrentScreen;
 
 void HelloBoot();
 
@@ -37,5 +43,5 @@ void PutChar(KEYCODE C, int is_ext);
 void PutString(char* String);
 void PutStringLine(char* String, int Line);
 
-
+void InitScreen();
 #endif // _SCREEN_H_

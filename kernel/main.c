@@ -5,6 +5,7 @@
 #include "PIC.h"
 #include "IO.h"
 
+
 #define LOG_BUF_MAX_SIZE 512
 
 void
@@ -52,6 +53,8 @@ void KernelMain()
 {
 
     __enableSSE();  // only for demo; in the future will be called from __init.asm
+
+    InitScreen();
 
     ClearScreen();
 

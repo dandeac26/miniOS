@@ -2,11 +2,13 @@
 
 static PSCREEN gVideo = (PSCREEN)(0x000B8000);
 static char CLIBuffer[82];
-static char VideoMemoryBuffer[MAX_OFFSET];
 
-static char NORMAL_VideoBuffer[MAX_OFFSET];
 
-#define SCREEN_OFFSET (current_row * MAX_COLUMNS + current_line_offset[current_row])
+//static char VideoMemoryBuffer[MAX_OFFSET];
+//
+//static char NORMAL_VideoBuffer[MAX_OFFSET];
+
+#define SCREEN_OFFSET (CurrentScreen.row * MAX_COLUMNS + CurrentScreen.col[CurrentScreen.row])
 
 void CursorMove(int row, int col)
 {
@@ -36,47 +38,67 @@ void CursorPosition(int pos)
     CursorMove(row, col);
 }
 
-void HelloBoot()
+// THIS WILL NO LONGER WORK
+//void HelloBoot()
+//{
+//    int i, len;
+//	char boot[] = "Hello Boot! Greetings from C... lol";
+//
+//	len = 0;
+//	while (boot[len] != 0)
+//	{
+//		len++;
+//	}
+//
+//	for (i = 0; (i < len) && (i < MAX_OFFSET); i++)
+//	{
+//		gVideo[i].color = text_color;
+//		gVideo[i].c = boot[i];
+//	}
+//    CursorPosition(i);
+//}
+
+void IntBufferInit(int* buf, size_t size, int value) {
+    for (int i = 0; i < size; i++) {
+        buf[i] = value;
+    }
+}
+
+void InitScreen()
 {
-    int i, len;
-	char boot[] = "Hello Boot! Greetings from C... lol";
 
-	len = 0;
-	while (boot[len] != 0)
-	{
-		len++;
-	}
+    IntBufferInit(&NormalScreen.col, MAX_LINES, 0);
+    NormalScreen.row = 0;
+    IntBufferInit(&NormalScreen.line_size, MAX_LINES, 0);
+    IntBufferInit(&NormalScreen.new_line, MAX_LINES, false);
 
-	for (i = 0; (i < len) && (i < MAX_OFFSET); i++)
-	{
-		gVideo[i].color = text_color;
-		gVideo[i].c = boot[i];
-	}
-    CursorPosition(i);
+
+    IntBufferInit(&EditScreen.col, MAX_LINES, 0);
+    //EditScreen.current_line_offset[MAX_LINES] = { 0 };
+    EditScreen.row = 0;
+    IntBufferInit(&EditScreen.line_size, MAX_LINES, 0);
+    //EditScreen.line_size[MAX_LINES] = { 0 };
+    IntBufferInit(&EditScreen.new_line, MAX_LINES, false);
+    //EditScreen.new_line[MAX_LINES] = { false };
+
 }
 
 void ClearScreen()
 {
+    
     int i;
 
     for (i = 0; i < MAX_OFFSET; i++)
     {
         gVideo[i].color = text_color;
         gVideo[i].c = ' ';
-        if(ConsoleMode == NORMAL_MODE)    NORMAL_VideoBuffer[i] = ' ';
-        if(ConsoleMode == EDIT_MODE)    VideoMemoryBuffer[i] = ' ';
+        CurrentScreen.Buffer[i] = ' ';
     }
 
-    for (int i = 0; i < MAX_LINES; i++)
-        current_line_offset[i] = 0;
+    //InitScreen();
 
-    current_row = 0;
     CursorPosition(SCREEN_OFFSET);
     CursorMove(0, 0);
-    for (int i = 0; i < MAX_LINES; i++)
-        line_size[i] = 0;
-    for (int i = 0; i < MAX_LINES; i++)
-        new_line[i] = false;
 }
 
 //void ClearScreenMode(CONSOLE_MODE mode)
@@ -121,6 +143,42 @@ void ClearScreen()
 //    }
 //}
 
+void SaveNormalScreen() 
+{
+    NormalScreen.row = CurrentScreen.row;
+    NormalScreen.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
+
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        NormalScreen.Buffer[i] = CurrentScreen.Buffer[i];
+
+        if (i < MAX_LINES)
+        {
+            NormalScreen.line_size[i] = CurrentScreen.line_size[i];
+            NormalScreen.new_line[i] = CurrentScreen.new_line[i];
+        }
+    }
+    
+}
+
+void SaveEditScreen() 
+{
+    EditScreen.row = CurrentScreen.row;
+    EditScreen.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
+
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        EditScreen.Buffer[i] = CurrentScreen.Buffer[i];
+
+        if (i < MAX_LINES)
+        {
+            EditScreen.line_size[i] = CurrentScreen.line_size[i];
+            EditScreen.new_line[i] = CurrentScreen.new_line[i];
+        }
+    }
+
+}
+
 void EnterMode(CONSOLE_MODE mode)
 {
 
@@ -128,32 +186,48 @@ void EnterMode(CONSOLE_MODE mode)
 
     if (mode == EDIT_MODE) {
         text_color = CYAN_COLOR;
-        //CClearScreen(NULL, NULL, NULL, NULL, NULL, NULL);
+  
+        //// SAVE NORMAL MODE
+        SaveNormalScreen();
 
-        int row = 3, col = 5;
+        //// RESTORE EDIT MODE
+        CurrentScreen.row = EditScreen.row;
+        CurrentScreen.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
 
         //RestoreScreen(VideoMemoryBuffer, NULL, &row, &current_line_offset, &line_size, &new_line);
 
         for (int i = 0; i < MAX_OFFSET; i++)
         {
             gVideo[i].color = text_color;
-            gVideo[i].c = VideoMemoryBuffer[i];
+            gVideo[i].c = EditScreen.Buffer[i];
+            if (i < MAX_LINES) {
+                CurrentScreen.line_size[i] = EditScreen.line_size[i];
+                CurrentScreen.new_line[i] = EditScreen.new_line[i];
+            }
         }
 
-       // check all buffered text and map new line and others
-        current_row = row;        
+       // check all buffered text and map new line and others       
 
         CursorPosition(SCREEN_OFFSET);
     }
     else 
     {
+        SaveEditScreen();
+
+
         text_color = 10;
+
+        CurrentScreen.row = NormalScreen.row;
+        CurrentScreen.col[CurrentScreen.row] = NormalScreen.col[CurrentScreen.row];
+        
         for (int i = 0; i < MAX_OFFSET; i++)
         {
             gVideo[i].color = text_color;
-            gVideo[i].c = NORMAL_VideoBuffer[i];
+            gVideo[i].c = NormalScreen.Buffer[i];
         }
-        current_row = 5;
+
+        
+        
         CursorPosition(SCREEN_OFFSET);
         //CClearScreen(VideoMemoryBuffer, MAX_OFFSET, current_row, &current_line_offset, line_size, new_line);
     }
