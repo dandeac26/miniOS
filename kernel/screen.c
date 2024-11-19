@@ -159,6 +159,7 @@ void EnterMode(CONSOLE_MODE mode)
     }
 }
 
+
 void PutChar(KEYCODE C, int is_ext)
 {
     // Handling regular keys when is_ext == 0
@@ -272,6 +273,7 @@ void PutChar(KEYCODE C, int is_ext)
                 {
                     gVideo[current_row * MAX_COLUMNS + i].color = text_color;
                     gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i + 1].c;
+
                     if (ConsoleMode == EDIT_MODE)  VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = VideoMemoryBuffer[current_row * MAX_COLUMNS + i + 1];
                     else if (ConsoleMode == NORMAL_MODE)  NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i] = NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i + 1];
                 }
@@ -368,7 +370,7 @@ void ScreenDisplay(char* logBuffer, int color)
             {
                 gVideo[pos].c = logBuffer[i];
                 gVideo[pos].color = color;
-
+                if (ConsoleMode == NORMAL_MODE) NORMAL_VideoBuffer[pos] = logBuffer[i];
                 currentColumn++;
                 
                 if (currentColumn >= MAX_COLUMNS)
