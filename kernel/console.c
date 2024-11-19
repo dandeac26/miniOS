@@ -92,6 +92,7 @@ void CClearScreen(
     int    row, int current_line_offset[MAX_LINES], int line_size[MAX_LINES], int new_line[MAX_LINES]
 ) 
 {
+
     //if (VideoMemoryBuffer != NULL) {
     //    for (int i = 0; i < MAX_OFFSET; i++) {
     //        //if(is_value(VideoMemoryBuffer[i]))
@@ -118,6 +119,7 @@ void CClearScreen(
     //ClearScreen();
 }
 #pragma optimize("", on)
+
 
 void RestoreScreen(
 
