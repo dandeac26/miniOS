@@ -62,7 +62,7 @@ void KernelMain()
 
     Log("Logging initialized!");
 
-    HelloBoot();
+    //HelloBoot();
 
     ClearScreen();
 

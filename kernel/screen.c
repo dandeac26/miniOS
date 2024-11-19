@@ -4,7 +4,7 @@ static PSCREEN gVideo = (PSCREEN)(0x000B8000);
 static char CLIBuffer[82];
 
 
-//static char VideoMemoryBuffer[MAX_OFFSET];
+//static char CurrentScreen.Buffer[MAX_OFFSET];
 //
 //static char NORMAL_VideoBuffer[MAX_OFFSET];
 
@@ -64,28 +64,43 @@ void IntBufferInit(int* buf, size_t size, int value) {
     }
 }
 
+#pragma optimize("", off)
+void CharBufferInit(char* buf, size_t size, char value) {
+    for (int i = 0; i < size; i++) {
+        buf[i] = value;
+    }
+}
+#pragma optimize("", off)
+
 void InitScreen()
 {
+    ConsoleMode = NORMAL_MODE;
 
-    IntBufferInit(&NormalScreen.col, MAX_LINES, 0);
+    IntBufferInit(CurrentScreen.col, MAX_LINES, 0);
+    CurrentScreen.row = 0;
+    IntBufferInit(CurrentScreen.line_size, MAX_LINES, 0);
+    IntBufferInit(CurrentScreen.new_line, MAX_LINES, false);
+    CharBufferInit(CurrentScreen.Buffer, MAX_OFFSET, ' ');
+
+    IntBufferInit(NormalScreen.col, MAX_LINES, 0);
     NormalScreen.row = 0;
-    IntBufferInit(&NormalScreen.line_size, MAX_LINES, 0);
-    IntBufferInit(&NormalScreen.new_line, MAX_LINES, false);
+    IntBufferInit(NormalScreen.line_size, MAX_LINES, 0);
+    IntBufferInit(NormalScreen.new_line, MAX_LINES, false);
+    CharBufferInit(NormalScreen.Buffer, MAX_OFFSET, ' ');
 
 
-    IntBufferInit(&EditScreen.col, MAX_LINES, 0);
-    //EditScreen.current_line_offset[MAX_LINES] = { 0 };
+    IntBufferInit(EditScreen.col, MAX_LINES, 0);
     EditScreen.row = 0;
-    IntBufferInit(&EditScreen.line_size, MAX_LINES, 0);
-    //EditScreen.line_size[MAX_LINES] = { 0 };
-    IntBufferInit(&EditScreen.new_line, MAX_LINES, false);
-    //EditScreen.new_line[MAX_LINES] = { false };
+    IntBufferInit(EditScreen.line_size, MAX_LINES, 0);
+    IntBufferInit(EditScreen.new_line, MAX_LINES, false);
+    CharBufferInit(EditScreen.Buffer, MAX_OFFSET, ' ');
 
+    
 }
 
+#pragma optimize("", off)
 void ClearScreen()
 {
-    
     int i;
 
     for (i = 0; i < MAX_OFFSET; i++)
@@ -95,12 +110,18 @@ void ClearScreen()
         CurrentScreen.Buffer[i] = ' ';
     }
 
+    IntBufferInit(CurrentScreen.col, MAX_LINES, 0);
+    CurrentScreen.row = 0;
+    IntBufferInit(CurrentScreen.line_size, MAX_LINES, 0);
+    IntBufferInit(CurrentScreen.new_line, MAX_LINES, false);
+
     //InitScreen();
-
+ 
     CursorPosition(SCREEN_OFFSET);
-    CursorMove(0, 0);
+   
+    //CursorMove(0, 0);
 }
-
+#pragma optimize("", on)
 //void ClearScreenMode(CONSOLE_MODE mode)
 //{
 //    if (mode == NORMAL_MODE) {
@@ -110,11 +131,11 @@ void ClearScreen()
 //        {
 //            gVideo[i].color = text_color;
 //            gVideo[i].c = ' ';
-//            VideoMemoryBuffer[i] = ' ';
+//            CurrentScreen.Buffer[i] = ' ';
 //        }
 //        for(int i = 0 ; i<MAX_LINES; i++)
-//            current_line_offset[i] = 0;
-//        current_row = 0;
+//            CurrentScreen.col[i] = 0;
+//        CurrentScreen.row = 0;
 //
 //        for (int i = 0; i < MAX_LINES; i++)
 //            new_line[i] = false;
@@ -129,12 +150,12 @@ void ClearScreen()
 //        {
 //            gVideo[i].color = BLUE_COLOR;
 //            gVideo[i].c = ' ';
-//            VideoMemoryBuffer[i] = ' ';
+//            CurrentScreen.Buffer[i] = ' ';
 //        }
 //        gVideo[i].color = text_color;
 //        for (int i = 0; i < MAX_LINES; i++)
-//            current_line_offset[i] = 0;
-//        current_row = 0;
+//            CurrentScreen.col[i] = 0;
+//        CurrentScreen.row = 0;
 //
 //        for (int i = 0; i < MAX_LINES; i++)
 //            new_line[i] = 0;
@@ -146,7 +167,7 @@ void ClearScreen()
 void SaveNormalScreen() 
 {
     NormalScreen.row = CurrentScreen.row;
-    NormalScreen.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
+    //NormalScreen.col[CurrentScreen.row] = CurrentScreen.col[CurrentScreen.row];
 
     for (int i = 0; i < MAX_OFFSET; i++)
     {
@@ -154,17 +175,17 @@ void SaveNormalScreen()
 
         if (i < MAX_LINES)
         {
+            NormalScreen.col[i] = CurrentScreen.col[i];
             NormalScreen.line_size[i] = CurrentScreen.line_size[i];
             NormalScreen.new_line[i] = CurrentScreen.new_line[i];
         }
     }
-    
 }
 
 void SaveEditScreen() 
 {
     EditScreen.row = CurrentScreen.row;
-    EditScreen.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
+    //EditScreen.col[CurrentScreen.row] = CurrentScreen.col[CurrentScreen.row];
 
     for (int i = 0; i < MAX_OFFSET; i++)
     {
@@ -172,252 +193,483 @@ void SaveEditScreen()
 
         if (i < MAX_LINES)
         {
+            EditScreen.col[i] = CurrentScreen.col[i];
             EditScreen.line_size[i] = CurrentScreen.line_size[i];
             EditScreen.new_line[i] = CurrentScreen.new_line[i];
         }
     }
-
+    EditScreen.line_size[CurrentScreen.row] = CurrentScreen.line_size[CurrentScreen.row];
+    EditScreen.col[CurrentScreen.row] = CurrentScreen.col[CurrentScreen.row];
+    //EditScreen.new_line[CurrentScreen.row] = true;
 }
+
+void SaveScreenState(SCREEN_STATE state)
+{
+    state.row = CurrentScreen.row;
+    state.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
+
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        state.Buffer[i] = CurrentScreen.Buffer[i];
+
+        if (i < MAX_LINES)
+        {
+            state.line_size[i] = CurrentScreen.line_size[i];
+            state.new_line[i] = CurrentScreen.new_line[i];
+        }
+    }
+}
+
+
+void RestoreScreenState(SCREEN_STATE state)
+{
+    if (ConsoleMode == EDIT_MODE)
+        text_color = CYAN_COLOR;
+    else
+        text_color = 10;
+
+    CurrentScreen.row = state.row;
+    CurrentScreen.col[CurrentScreen.row] = state.col[CurrentScreen.row];
+
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        gVideo[i].color = text_color;
+        gVideo[i].c = state.Buffer[i];
+        if (i < MAX_LINES) {
+            CurrentScreen.line_size[i] = state.line_size[i];
+            CurrentScreen.new_line[i] = state.new_line[i];
+        }
+    }      
+
+    CursorPosition(SCREEN_OFFSET);
+}
+
+#pragma optimize("", off)
+void RestoreEditScreen()
+{
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        gVideo[i].c = ' ';
+        CurrentScreen.Buffer[i] = ' ';
+    } 
+    //ClearScreen();
+   // IntBufferInit(CurrentScreen.col, MAX_LINES, 0);
+   ///* CurrentScreen.row = 0;*/
+   // IntBufferInit(CurrentScreen.line_size, MAX_LINES, 0);
+
+    text_color = CYAN_COLOR;
+
+    CurrentScreen.row = EditScreen.row;
+    //CurrentScreen.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
+
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        gVideo[i].color = text_color;
+        gVideo[i].c = EditScreen.Buffer[i];
+        CurrentScreen.Buffer[i] = EditScreen.Buffer[i];
+        if (i < MAX_LINES) {
+            CurrentScreen.col[i] = EditScreen.col[i];
+            CurrentScreen.line_size[i] = EditScreen.line_size[i];
+            CurrentScreen.new_line[i] = EditScreen.new_line[i];
+        }
+    }
+
+    if (CurrentScreen.col[CurrentScreen.row] != 0) 
+    {
+        CurrentScreen.new_line[++CurrentScreen.row] = true;
+    }
+    
+    CursorPosition(SCREEN_OFFSET);
+    
+    
+    
+}
+#pragma optimize("", on)
+
+#pragma optimize("", off)
+void RestoreNormalSceen()
+{
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        gVideo[i].c = ' ';
+        CurrentScreen.Buffer[i] = ' ';
+    }
+
+    //ClearScreen();
+   // IntBufferInit(CurrentScreen.col, MAX_LINES, 0);
+   ///* CurrentScreen.row = 0;*/
+   // IntBufferInit(CurrentScreen.line_size, MAX_LINES, 0);
+
+    text_color = 10;
+
+    CurrentScreen.row = NormalScreen.row;
+    //CurrentScreen.col[CurrentScreen.row] = NormalScreen.col[CurrentScreen.row];
+
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        gVideo[i].color = text_color;
+        gVideo[i].c = NormalScreen.Buffer[i];
+        CurrentScreen.Buffer[i] = NormalScreen.Buffer[i];
+
+        if (i < MAX_LINES) 
+        {
+            CurrentScreen.col[i] = NormalScreen.col[i];
+            CurrentScreen.line_size[i] = NormalScreen.line_size[i];
+            CurrentScreen.new_line[i] = NormalScreen.new_line[i];
+        }
+    }
+
+    CursorPosition(SCREEN_OFFSET);
+}
+#pragma optimize("", on)
 
 void EnterMode(CONSOLE_MODE mode)
 {
-
     ConsoleMode = mode;
 
-    if (mode == EDIT_MODE) {
-        text_color = CYAN_COLOR;
-  
-        //// SAVE NORMAL MODE
+    if (mode == EDIT_MODE) 
+    {
         SaveNormalScreen();
 
-        //// RESTORE EDIT MODE
-        CurrentScreen.row = EditScreen.row;
-        CurrentScreen.col[CurrentScreen.row] = EditScreen.col[CurrentScreen.row];
-
-        //RestoreScreen(VideoMemoryBuffer, NULL, &row, &current_line_offset, &line_size, &new_line);
-
-        for (int i = 0; i < MAX_OFFSET; i++)
-        {
-            gVideo[i].color = text_color;
-            gVideo[i].c = EditScreen.Buffer[i];
-            if (i < MAX_LINES) {
-                CurrentScreen.line_size[i] = EditScreen.line_size[i];
-                CurrentScreen.new_line[i] = EditScreen.new_line[i];
-            }
-        }
-
-       // check all buffered text and map new line and others       
-
-        CursorPosition(SCREEN_OFFSET);
+        RestoreEditScreen();
     }
     else 
     {
         SaveEditScreen();
 
+        RestoreNormalSceen();
+    }
+}
 
-        text_color = 10;
+void PutCharExt(KEYCODE C) 
+{
+    // Handling arrow keys
+    if (C == KEY_DELETE && CurrentScreen.col[CurrentScreen.row] < CurrentScreen.line_size[CurrentScreen.row]) {
 
-        CurrentScreen.row = NormalScreen.row;
-        CurrentScreen.col[CurrentScreen.row] = NormalScreen.col[CurrentScreen.row];
+
+        // shift left
+        for (int i = CurrentScreen.col[CurrentScreen.row]; i < CurrentScreen.line_size[CurrentScreen.row]; i++) {
+            if (i == CurrentScreen.line_size[CurrentScreen.row] - 1)
+            {
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = ' ';
+
+                CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = ' ';
+            }
+            else
+            {
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = gVideo[CurrentScreen.row * MAX_COLUMNS + i + 1].c;
+
+                CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i + 1];
+            }
+
+        }
+
+
+        CLIBuffer[CurrentScreen.line_size[CurrentScreen.row]] = '\0';//here was current offeset
+        CursorPosition(SCREEN_OFFSET);
+        CurrentScreen.line_size[CurrentScreen.row]--;
+    }
+    else if (C == KEY_UP && CurrentScreen.row > 0 && ConsoleMode == EDIT_MODE) {
+
+        CurrentScreen.row--;
+        if (CurrentScreen.line_size[CurrentScreen.row] > CurrentScreen.col[CurrentScreen.row + 1])
+            CurrentScreen.col[CurrentScreen.row] = CurrentScreen.col[CurrentScreen.row + 1];
+        else if (CurrentScreen.new_line[CurrentScreen.row] == false)
+            CurrentScreen.col[CurrentScreen.row] = CurrentScreen.line_size[CurrentScreen.row];
         
-        for (int i = 0; i < MAX_OFFSET; i++)
+
+    }
+    else if (C == KEY_DOWN && CurrentScreen.row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE) {
+        if (CurrentScreen.new_line[CurrentScreen.row + 1] == true)
         {
-            gVideo[i].color = text_color;
-            gVideo[i].c = NormalScreen.Buffer[i];
-        }
+            CurrentScreen.row++;
 
-        
-        
-        CursorPosition(SCREEN_OFFSET);
-        //CClearScreen(VideoMemoryBuffer, MAX_OFFSET, current_row, &current_line_offset, line_size, new_line);
+            if (CurrentScreen.line_size[CurrentScreen.row] > CurrentScreen.col[CurrentScreen.row - 1])
+                CurrentScreen.col[CurrentScreen.row] = CurrentScreen.col[CurrentScreen.row - 1];
+        }
     }
+    else if (C == KEY_LEFT && CurrentScreen.col[CurrentScreen.row] > 0) {
+        CurrentScreen.col[CurrentScreen.row]--;
+    }
+    else if (C == KEY_RIGHT && CurrentScreen.col[CurrentScreen.row] < MAX_COLUMNS - 1) { // end of console
+        if (CurrentScreen.col[CurrentScreen.row] < CurrentScreen.line_size[CurrentScreen.row]) {
+            CurrentScreen.col[CurrentScreen.row]++;
+        }
+        else if (CurrentScreen.row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE)
+        {
+            if (CurrentScreen.new_line[CurrentScreen.row + 1] == true) {
+                CurrentScreen.row++;
+
+                CurrentScreen.col[CurrentScreen.row] = 0;
+            }
+
+        }
+    }
+    CursorPosition(SCREEN_OFFSET);
 }
 
-
-void PutChar(KEYCODE C, int is_ext)
+void PutCharStd(KEYCODE C)
 {
-    // Handling regular keys when is_ext == 0
-    if (is_ext == false) {
+    if (C == ENTER_KEY || C == ENTER_KEY2) {
 
-        if (C == ENTER_KEY || C == ENTER_KEY2) {
-            
-            current_row++;
-            new_line[current_row] = true;
-            CursorPosition(SCREEN_OFFSET);
-            
-            if (ConsoleMode == NORMAL_MODE) {
-                CLIBuffer[line_size[current_row-1]] = '\0';
-                ParseCommand(CLIBuffer, line_size[current_row-1]);
+        CurrentScreen.row++;
+        CurrentScreen.new_line[CurrentScreen.row] = true;
+        CursorPosition(SCREEN_OFFSET);
 
-                line_size[current_row] = 0;
-            }
+        if (ConsoleMode == NORMAL_MODE) {
+            CLIBuffer[CurrentScreen.line_size[CurrentScreen.row - 1]] = '\0';
+            ParseCommand(CLIBuffer, CurrentScreen.line_size[CurrentScreen.row - 1]);
+
+            CurrentScreen.line_size[CurrentScreen.row] = 0;
         }
-        else if (C == BACKSPACE_KEY && current_line_offset[current_row] > 0) {
-            current_line_offset[current_row]--;
-            
-            // shift left
-            for (int i = current_line_offset[current_row]; i < line_size[current_row]; i++) {
-                if (i == line_size[current_row] - 1)
-                {
-                    gVideo[current_row * MAX_COLUMNS + i].color = text_color;
-                    gVideo[current_row * MAX_COLUMNS + i].c = ' ';
-                    if(ConsoleMode == EDIT_MODE)    VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = ' ';
-                    else if(ConsoleMode == NORMAL_MODE)  NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i] = ' ';
-                }
-                else 
-                {
-                    gVideo[current_row * MAX_COLUMNS + i].color = text_color;
-                    gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i + 1].c;
-                    if (ConsoleMode == EDIT_MODE)   VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = VideoMemoryBuffer[current_row * MAX_COLUMNS + i + 1];
-                    else if (ConsoleMode == NORMAL_MODE)  NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i] = NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i + 1];
-                    
-                }
-               
-            }
-
-            
-            CLIBuffer[line_size[current_row]] = '\0';
-            CursorPosition(SCREEN_OFFSET);
-            line_size[current_row]--;
-            
-        }
-        else if (C == KEY_ESCAPE && ConsoleMode == EDIT_MODE) {
-            EnterMode(NORMAL_MODE);
-        }
-        else {
-            gVideo[SCREEN_OFFSET].color = text_color;
-
-            if (is_value(C) && line_size[current_row] < MAX_COLUMNS)
-            {
-               // if(line_size[current_row]==-1) line_size[current_row]++;
-
-                line_size[current_row]++;
-                
-                // shift right
-                for (int i = line_size[current_row] - 1; i > current_line_offset[current_row]; i--) {
-                    gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i - 1].c;
-                    
-                    if (ConsoleMode == EDIT_MODE)  VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = VideoMemoryBuffer[current_row * MAX_COLUMNS + i - 1];
-                    else if (ConsoleMode == NORMAL_MODE) NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i] = NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i - 1];
-                    
-                }
-                gVideo[SCREEN_OFFSET].c = (char)C;
-                if (ConsoleMode == EDIT_MODE)           VideoMemoryBuffer[SCREEN_OFFSET] = (char)C;
-                else if (ConsoleMode == NORMAL_MODE)    NORMAL_VideoBuffer[SCREEN_OFFSET] = (char)C;
-                CLIBuffer[current_line_offset[current_row]++] = (char)C;
-            }
-
-            if (current_line_offset[current_row] >= MAX_COLUMNS) {
-                current_row++;
-                new_line[current_row] = true;
-                current_line_offset[current_row] = 0;
-                if(ConsoleMode == NORMAL_MODE)  line_size[current_row] = 0;
-                
-            }
-
-            if (current_row >= MAX_LINES) {
-                ClearScreen();
-                current_row = 0;
-                new_line[0] = true;
-                line_size[current_row] = 0;
-                current_line_offset[current_row] = 0;
-            }
-
-            CursorPosition(SCREEN_OFFSET);
-        }
+        
     }
+    else if (C == BACKSPACE_KEY && CurrentScreen.col[CurrentScreen.row] > 0) 
+    {
+        CurrentScreen.col[CurrentScreen.row]--;
 
-    else if (is_ext == true) {
-        // Handling arrow keys
-        if (C == KEY_DELETE && current_line_offset[current_row] < line_size[current_row]) {
-            
-
-            // shift left
-            for (int i = current_line_offset[current_row]; i < line_size[current_row]; i++) {
-                if (i == line_size[current_row] - 1)
-                {
-                    gVideo[current_row * MAX_COLUMNS + i].color = text_color;
-                    gVideo[current_row * MAX_COLUMNS + i].c = ' ';
-                   
-
-                    if (ConsoleMode == EDIT_MODE)           VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = ' ';
-                    else if (ConsoleMode == NORMAL_MODE)    NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i] = ' ';
-                }
-                else
-                {
-                    gVideo[current_row * MAX_COLUMNS + i].color = text_color;
-                    gVideo[current_row * MAX_COLUMNS + i].c = gVideo[current_row * MAX_COLUMNS + i + 1].c;
-
-                    if (ConsoleMode == EDIT_MODE)  VideoMemoryBuffer[current_row * MAX_COLUMNS + i] = VideoMemoryBuffer[current_row * MAX_COLUMNS + i + 1];
-                    else if (ConsoleMode == NORMAL_MODE)  NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i] = NORMAL_VideoBuffer[current_row * MAX_COLUMNS + i + 1];
-                }
-
-            }
-
-
-            CLIBuffer[line_size[current_row]] = '\0';//here was current offeset
-            CursorPosition(SCREEN_OFFSET);
-            line_size[current_row]--;
-        }
-        else if (C == KEY_UP && current_row > 0 && ConsoleMode == EDIT_MODE) {
-
-            current_row--;
-            if (line_size[current_row] > current_line_offset[current_row + 1])
-                current_line_offset[current_row] = current_line_offset[current_row + 1];
-            else if(new_line[current_row] == false)
-                current_line_offset[current_row] = line_size[current_row];
-            //if (current_line_offset[current_row] < 0) current_line_offset[current_row] = 0;
-
-        }
-        else if (C == KEY_DOWN && current_row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE) {
-            if (new_line[current_row + 1] == true) {
-                current_row++;
-
-                if (line_size[current_row] > current_line_offset[current_row - 1])
-                    current_line_offset[current_row] = current_line_offset[current_row - 1];
-            }
-
-
-        }
-        else if (C == KEY_LEFT && current_line_offset[current_row] > 0) {
-            current_line_offset[current_row]--;
-        }
-        else if (C == KEY_RIGHT && current_line_offset[current_row] < MAX_COLUMNS - 1) { // end of console
-            if (current_line_offset[current_row] < line_size[current_row]) {
-                current_line_offset[current_row]++;
-            }
-            else if(current_row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE)
+        // shift left
+        for (int i = CurrentScreen.col[CurrentScreen.row]; i < CurrentScreen.line_size[CurrentScreen.row]; i++) 
+        {
+            if (i == CurrentScreen.line_size[CurrentScreen.row] - 1)
             {
-                if (new_line[current_row + 1] == true) {
-                    current_row++;
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = ' ';
 
-                    current_line_offset[current_row] = 0;
-                }
-
+                CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = ' ';
             }
-            
+            else
+            {
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = gVideo[CurrentScreen.row * MAX_COLUMNS + i + 1].c;
+
+                CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i + 1];
+            }
         }
+
+        CLIBuffer[CurrentScreen.line_size[CurrentScreen.row]] = '\0';
+        CursorPosition(SCREEN_OFFSET);
+        CurrentScreen.line_size[CurrentScreen.row]--;
+    }
+    else if (C == KEY_ESCAPE && ConsoleMode == EDIT_MODE) 
+    {
+        EnterMode(NORMAL_MODE);
+    }
+    else 
+    {
+        gVideo[SCREEN_OFFSET].color = text_color;
+
+        if (is_value(C) && CurrentScreen.line_size[CurrentScreen.row] < MAX_COLUMNS)
+        {
+            CurrentScreen.line_size[CurrentScreen.row]++;
+
+            // shift right
+            for (int i = CurrentScreen.line_size[CurrentScreen.row] - 1; i > CurrentScreen.col[CurrentScreen.row]; i--) 
+            {
+                gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = gVideo[CurrentScreen.row * MAX_COLUMNS + i - 1].c;
+
+                CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i - 1];
+            }
+
+            gVideo[SCREEN_OFFSET].c = (char)C;
+
+            CurrentScreen.Buffer[SCREEN_OFFSET] = (char)C;
+           
+            CLIBuffer[CurrentScreen.col[CurrentScreen.row]++] = (char)C;
+        }
+
+        if (CurrentScreen.col[CurrentScreen.row] >= MAX_COLUMNS) {
+            CurrentScreen.row++;
+            CurrentScreen.new_line[CurrentScreen.row] = true;
+            CurrentScreen.col[CurrentScreen.row] = 0;
+            if (ConsoleMode == NORMAL_MODE) CurrentScreen.line_size[CurrentScreen.row] = 0;
+        }
+
+        if (CurrentScreen.row >= MAX_LINES) {
+            ClearScreen();
+            CurrentScreen.row = 0;
+            CurrentScreen.new_line[0] = true;
+            CurrentScreen.line_size[CurrentScreen.row] = 0;
+            CurrentScreen.col[CurrentScreen.row] = 0;
+        }
+
         CursorPosition(SCREEN_OFFSET);
     }
 }
 
-void GetScreenState(void* VideoBuffer, DWORD BufferSize, int CursorPosition) 
-{
-    VideoBuffer = VideoMemoryBuffer;
-    BufferSize = MAX_OFFSET;
-    CursorPosition = SCREEN_OFFSET;
-}
-
-
-void PutString(char *Buffer)
-{
-
-}
+//void PutChar(KEYCODE C, int is_ext)
+//{
+//    // Handling regular keys when is_ext == 0
+//    if (is_ext == false) {
+//
+//        if (C == ENTER_KEY || C == ENTER_KEY2) {
+//            
+//            CurrentScreen.row++;
+//            new_line[CurrentScreen.row] = true;
+//            CursorPosition(SCREEN_OFFSET);
+//            
+//            if (ConsoleMode == NORMAL_MODE) {
+//                CLIBuffer[line_size[CurrentScreen.row-1]] = '\0';
+//                ParseCommand(CLIBuffer, line_size[CurrentScreen.row-1]);
+//
+//                line_size[CurrentScreen.row] = 0;
+//            }
+//        }
+//        else if (C == BACKSPACE_KEY && CurrentScreen.col[CurrentScreen.row] > 0) {
+//            CurrentScreen.col[CurrentScreen.row]--;
+//            
+//            // shift left
+//            for (int i = CurrentScreen.col[CurrentScreen.row]; i < line_size[CurrentScreen.row]; i++) {
+//                if (i == line_size[CurrentScreen.row] - 1)
+//                {
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = ' ';
+//                    if(ConsoleMode == EDIT_MODE)    CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = ' ';
+//                    else if(ConsoleMode == NORMAL_MODE)  NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i] = ' ';
+//                }
+//                else 
+//                {
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = gVideo[CurrentScreen.row * MAX_COLUMNS + i + 1].c;
+//                    if (ConsoleMode == EDIT_MODE)   CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i + 1];
+//                    else if (ConsoleMode == NORMAL_MODE)  NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i] = NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i + 1];
+//                    
+//                }
+//               
+//            }
+//
+//            
+//            CLIBuffer[line_size[CurrentScreen.row]] = '\0';
+//            CursorPosition(SCREEN_OFFSET);
+//            line_size[CurrentScreen.row]--;
+//            
+//        }
+//        else if (C == KEY_ESCAPE && ConsoleMode == EDIT_MODE) {
+//            EnterMode(NORMAL_MODE);
+//        }
+//        else {
+//            gVideo[SCREEN_OFFSET].color = text_color;
+//
+//            if (is_value(C) && line_size[CurrentScreen.row] < MAX_COLUMNS)
+//            {
+//               // if(line_size[CurrentScreen.row]==-1) line_size[CurrentScreen.row]++;
+//
+//                line_size[CurrentScreen.row]++;
+//                
+//                // shift right
+//                for (int i = line_size[CurrentScreen.row] - 1; i > CurrentScreen.col[CurrentScreen.row]; i--) {
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = gVideo[CurrentScreen.row * MAX_COLUMNS + i - 1].c;
+//                    
+//                    if (ConsoleMode == EDIT_MODE)  CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i - 1];
+//                    else if (ConsoleMode == NORMAL_MODE) NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i] = NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i - 1];
+//                    
+//                }
+//                gVideo[SCREEN_OFFSET].c = (char)C;
+//                if (ConsoleMode == EDIT_MODE)           CurrentScreen.Buffer[SCREEN_OFFSET] = (char)C;
+//                else if (ConsoleMode == NORMAL_MODE)    NORMAL_VideoBuffer[SCREEN_OFFSET] = (char)C;
+//                CLIBuffer[CurrentScreen.col[CurrentScreen.row]++] = (char)C;
+//            }
+//
+//            if (CurrentScreen.col[CurrentScreen.row] >= MAX_COLUMNS) {
+//                CurrentScreen.row++;
+//                new_line[CurrentScreen.row] = true;
+//                CurrentScreen.col[CurrentScreen.row] = 0;
+//                if(ConsoleMode == NORMAL_MODE)  line_size[CurrentScreen.row] = 0;
+//                
+//            }
+//
+//            if (CurrentScreen.row >= MAX_LINES) {
+//                ClearScreen();
+//                CurrentScreen.row = 0;
+//                new_line[0] = true;
+//                line_size[CurrentScreen.row] = 0;
+//                CurrentScreen.col[CurrentScreen.row] = 0;
+//            }
+//
+//            CursorPosition(SCREEN_OFFSET);
+//        }
+//    }
+//
+//    else if (is_ext == true) {
+//        // Handling arrow keys
+//        if (C == KEY_DELETE && CurrentScreen.col[CurrentScreen.row] < line_size[CurrentScreen.row]) {
+//            
+//
+//            // shift left
+//            for (int i = CurrentScreen.col[CurrentScreen.row]; i < line_size[CurrentScreen.row]; i++) {
+//                if (i == line_size[CurrentScreen.row] - 1)
+//                {
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = ' ';
+//                   
+//
+//                    if (ConsoleMode == EDIT_MODE)           CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = ' ';
+//                    else if (ConsoleMode == NORMAL_MODE)    NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i] = ' ';
+//                }
+//                else
+//                {
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].color = text_color;
+//                    gVideo[CurrentScreen.row * MAX_COLUMNS + i].c = gVideo[CurrentScreen.row * MAX_COLUMNS + i + 1].c;
+//
+//                    if (ConsoleMode == EDIT_MODE)  CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i] = CurrentScreen.Buffer[CurrentScreen.row * MAX_COLUMNS + i + 1];
+//                    else if (ConsoleMode == NORMAL_MODE)  NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i] = NORMAL_VideoBuffer[CurrentScreen.row * MAX_COLUMNS + i + 1];
+//                }
+//
+//            }
+//
+//
+//            CLIBuffer[line_size[CurrentScreen.row]] = '\0';//here was current offeset
+//            CursorPosition(SCREEN_OFFSET);
+//            line_size[CurrentScreen.row]--;
+//        }
+//        else if (C == KEY_UP && CurrentScreen.row > 0 && ConsoleMode == EDIT_MODE) {
+//
+//            CurrentScreen.row--;
+//            if (line_size[CurrentScreen.row] > CurrentScreen.col[CurrentScreen.row + 1])
+//                CurrentScreen.col[CurrentScreen.row] = CurrentScreen.col[CurrentScreen.row + 1];
+//            else if(new_line[CurrentScreen.row] == false)
+//                CurrentScreen.col[CurrentScreen.row] = line_size[CurrentScreen.row];
+//            //if (CurrentScreen.col[CurrentScreen.row] < 0) CurrentScreen.col[CurrentScreen.row] = 0;
+//
+//        }
+//        else if (C == KEY_DOWN && CurrentScreen.row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE) {
+//            if (new_line[CurrentScreen.row + 1] == true) {
+//                CurrentScreen.row++;
+//
+//                if (line_size[CurrentScreen.row] > CurrentScreen.col[CurrentScreen.row - 1])
+//                    CurrentScreen.col[CurrentScreen.row] = CurrentScreen.col[CurrentScreen.row - 1];
+//            }
+//
+//
+//        }
+//        else if (C == KEY_LEFT && CurrentScreen.col[CurrentScreen.row] > 0) {
+//            CurrentScreen.col[CurrentScreen.row]--;
+//        }
+//        else if (C == KEY_RIGHT && CurrentScreen.col[CurrentScreen.row] < MAX_COLUMNS - 1) { // end of console
+//            if (CurrentScreen.col[CurrentScreen.row] < line_size[CurrentScreen.row]) {
+//                CurrentScreen.col[CurrentScreen.row]++;
+//            }
+//            else if(CurrentScreen.row < MAX_LINES - 1 && ConsoleMode == EDIT_MODE)
+//            {
+//                if (new_line[CurrentScreen.row + 1] == true) {
+//                    CurrentScreen.row++;
+//
+//                    CurrentScreen.col[CurrentScreen.row] = 0;
+//                }
+//
+//            }
+//            
+//        }
+//        CursorPosition(SCREEN_OFFSET);
+//    }
+//}
 
 
 void ScreenDisplay(char* logBuffer, int color)
 {
-    int i, currentColumn = current_line_offset[current_row], currentRow = current_row;
+    int i, currentColumn = CurrentScreen.col[CurrentScreen.row], currentRow = CurrentScreen.row;
 
     if (logBuffer == NULL)
         return;
@@ -444,7 +696,8 @@ void ScreenDisplay(char* logBuffer, int color)
             {
                 gVideo[pos].c = logBuffer[i];
                 gVideo[pos].color = color;
-                if (ConsoleMode == NORMAL_MODE) NORMAL_VideoBuffer[pos] = logBuffer[i];
+                if(ConsoleMode == NORMAL_MODE) CurrentScreen.Buffer[pos] = logBuffer[i];
+
                 currentColumn++;
                 
                 if (currentColumn >= MAX_COLUMNS)
@@ -462,8 +715,9 @@ void ScreenDisplay(char* logBuffer, int color)
             }
         }
     }
-    current_row++;
-    //current_line_offset[current_row] = 0;
+
+    CurrentScreen.row++;
+
     CursorPosition(SCREEN_OFFSET);
 }
 

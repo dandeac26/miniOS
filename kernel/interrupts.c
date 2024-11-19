@@ -148,7 +148,7 @@ void keyboard_interrupt_handler_c() {
         
         key = _kkybrd_scancode_ext[scancode];
         if (key != KEY_UNKNOWN) {
-            PutChar(key, is_extended);  
+            PutCharExt(key);  
         }
         is_extended = 0;  
     }
@@ -156,7 +156,7 @@ void keyboard_interrupt_handler_c() {
         // Handle as a standard scancode
         key = _kkybrd_scancode_std[scancode];
         if (key != KEY_UNKNOWN) {
-            PutChar(key, is_extended);  
+            PutCharStd(key);  
         }
     }
 
