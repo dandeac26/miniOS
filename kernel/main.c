@@ -92,7 +92,7 @@ void KernelMain()
     IRQ_clear_mask(1);       // Enable KB
 
 
-    DetectATADevices();
+    //DetectATADevices();
     //__magic();
 
     while (1) {

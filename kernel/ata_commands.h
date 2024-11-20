@@ -1,8 +1,10 @@
 #ifndef _ATA_COMMANDS_H_
 #define _ATA_COMMANDS_H_
 
-// ATA commands
+
 #include "main.h"
+
+// ATA commands
 
 // The extended version is needed for LBA48 addressing
 #define ATA_CMD_READ_SECTORS            0x20
@@ -24,6 +26,34 @@
 
 #define ATA_SERIAL_NO_CHARS             20
 #define ATA_MODEL_NO_CHARS              40
+
+
+#define MAX_DRIVES 2 // Maximum number of ATA drives (Primary and Secondary)
+#define STATUS_DRIVE_PRESENT 0x1 // Custom flag for drive presence
+
+#define STATUS_BSY 0x80
+#define STATUS_DRQ 0x08
+#define STATUS_ERR 0x01
+
+// Base I/O ports for Primary and Secondary buses
+#define ATA_PRIMARY_IO  0x1F0
+#define ATA_SECONDARY_IO 0x170
+
+// Offset for each register
+#define ATA_REG_DATA      0
+#define ATA_REG_ERROR     1
+#define ATA_REG_FEATURES  1
+#define ATA_REG_SECCOUNT0 2
+#define ATA_REG_LBA0      3
+#define ATA_REG_LBA1      4
+#define ATA_REG_LBA2      5
+#define ATA_REG_HDDEVSEL  6
+#define ATA_REG_COMMAND   7
+#define ATA_REG_STATUS    7
+
+#define SECTOR_SIZE 512
+
+
 
 typedef struct _ATA_IDENTIFY_RESPONSE
 {
@@ -77,6 +107,15 @@ typedef struct _ATA_IDENTIFY_RESPONSE
 } ATA_IDENTIFY_RESPONSE, * PATA_IDENTIFY_RESPONSE;
 #pragma warning(default:4124)
 #pragma pack(pop)
+
+typedef struct _ATA_DEVICE_INFO {
+    int DriveNumber;            // 0 for primary, 1 for secondary
+    int IsPresent;
+    ATA_IDENTIFY_RESPONSE Info;
+} ATA_DEVICE_INFO;
+
+ATA_DEVICE_INFO DetectedDevices[MAX_DRIVES];
+
 
 
 void ata_send_command(int drive, BYTE command, DWORD lba, BYTE* buffer, WORD sector_count);

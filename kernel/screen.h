@@ -35,17 +35,13 @@ static SCREEN_STATE NormalScreen;
 static SCREEN_STATE EditScreen;
 static SCREEN_STATE CurrentScreen;
 
-void HelloBoot();
-
 void SetColor(BYTE Color);
 void ClearScreen();
 void PutChar(KEYCODE C, int is_ext);
-void PutString(char* String);
-void PutStringLine(char* String, int Line);
+void PutString(char* buffer, size_t size);
 
 void PutCharExt(KEYCODE C);
 void PutCharStd(KEYCODE C);
-void testfnc();
 
 void InitScreen();
 #endif // _SCREEN_H_

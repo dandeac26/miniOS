@@ -1,6 +1,5 @@
 #include "screen.h"
 
-
 #define SCREEN_OFFSET (CurrentScreen.row * MAX_COLUMNS + CurrentScreen.col[CurrentScreen.row])
 
 
@@ -359,43 +358,23 @@ void PutCharStd(KEYCODE C)
     }
 }
 
-#include "ata_commands.h"
 
 #pragma optimize("", off)
-void testfnc() 
+void PutString(char* buffer, size_t size)
 {
-
-    int drive = 0;
-
-    BYTE buffer[512] = { 0 }; // MBR is exactly one sector (512 bytes)
-
-    //// Read the first sector using the ATA command
-    ata_send_command(drive, ATA_CMD_READ_SECTORS, 0, &buffer, 1);
-
-    //// Clear the screen buffer before displaying
-    //for (int i = 0; i < MAX_OFFSET; i++) {
-    //    gVideo[i].color = 10;
-    //    gVideo[i].c = ' ';
-    //    CurrentScreen.Buffer[i] = ' ';
-    //}
-
-    //// Copy the buffer directly into the screen_buffer
-    int offset = 0;
-    for (int i = 0; i < 512; i++) {
-       // Fill the screen buffer with raw data from the disk sector
-        if (offset < MAX_OFFSET) {
-            gVideo[offset].color = 10;
-            gVideo[offset].c =(char)buffer[i];
-            CurrentScreen.Buffer[offset] = (char)buffer[i];
-            offset++;
-            //screen_buffer[offset++] = buffer[i];
-        }
+    size_t i;
+    for ( i = 0; i < size && i < MAX_OFFSET; i++) 
+    {
+        gVideo[(CurrentScreen.row + (i / MAX_COLUMNS)) * MAX_COLUMNS + (CurrentScreen.col[CurrentScreen.row] + (i % MAX_COLUMNS))].color = 10;
+        gVideo[(CurrentScreen.row + (i / MAX_COLUMNS)) * MAX_COLUMNS + (CurrentScreen.col[CurrentScreen.row] + (i % MAX_COLUMNS))].c = (char)buffer[i];
+        CurrentScreen.Buffer[(CurrentScreen.row + (i / MAX_COLUMNS)) * MAX_COLUMNS + (CurrentScreen.col[CurrentScreen.row] + (i % MAX_COLUMNS))] = (char)buffer[i];
     }
-    //LogSerialAndScreen("read data: %X", screen_buffer);
-
-
+    CurrentScreen.row = CurrentScreen.row + (i / MAX_COLUMNS)+1;
+    CurrentScreen.col[CurrentScreen.row] = 0;
+    CursorPosition(SCREEN_OFFSET);
 }
 #pragma optimize("", on)
+
 
 void ScreenDisplay(char* logBuffer, int color)
 {
