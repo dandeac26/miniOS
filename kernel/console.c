@@ -3,7 +3,7 @@
 int GetCommandNumber(const char* cmd, size_t size) 
 {
 
-    const char CommandList[][10] = { "cls", "edit", "time"}; 
+    const char CommandList[][10] = { "cls", "edit", "time", "printmbr"};
     int numCommands = sizeof(CommandList) / sizeof(CommandList[0]);
 
     for (int i = 0; i < numCommands; i++)
@@ -31,6 +31,10 @@ void PrintTimeTillBoot()
     LogSerialAndScreen("Time since boot: %d min:%ds\n", minutes, seconds);
 }
 
+void PrintMBR() {
+    ClearScreen();
+}
+
 
 void RunCommand(int cmd)
 {
@@ -44,6 +48,9 @@ void RunCommand(int cmd)
             break;
         case 3:
             PrintTimeTillBoot();
+            break;
+        case 4:
+            PrintMBR();
             break;
         case 0:
             LogSerialAndScreen("Not a valid command!\n");
