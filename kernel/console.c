@@ -45,7 +45,7 @@ void PrintMBR()
 
         ata_send_command(drive, ATA_CMD_READ_SECTORS, 0, buffer, 1);
 
-        PutString2(buffer, SECTOR_SIZE);
+        PutHexViewString(buffer, SECTOR_SIZE);
     }
 }
 #pragma optimize("", on)
@@ -59,7 +59,7 @@ void RunCommand(int cmd)
              ClearScreen();
             break;
         case 2: // edit
-             EnterMode(EDIT_MODE); /// For some reason vede functia fara sa o pun in header ??
+             EnterMode(EDIT_MODE);
             break;
         case 3:
             PrintTimeTillBoot();

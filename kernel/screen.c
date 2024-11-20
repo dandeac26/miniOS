@@ -190,6 +190,14 @@ void EnterMode(CONSOLE_MODE mode)
 #pragma optimize("", on)
 
 
+void UpScroll() {
+
+}
+
+void DownScroll() {
+
+}
+
 void PutCharExt(KEYCODE C) 
 {
     // Handling arrow keys
@@ -370,20 +378,21 @@ char getHexChar(size_t offset, int nibbleIndex) {
 
 
 #pragma optimize("", off)
-void PutString2(char* buffer, size_t size)
+void PutHexViewString(char* buffer, size_t size)
 {
     size_t i, j;
     DWORD offset;
     char hex_byte[4]; // 2 hex digits + space
     char ascii_byte;
  
-    // Iterate through the buffer in chunks of 16 bytes
+    // iterate buffer in chunks of 16 bytes
     for (i = 0; i < size; i += 16) {
-        // Print the offset (address) in hex
-        offset = i;
+        
+        offset = i; // print the offset (address) in hex
 
         // Print offset (8 characters for hex, 1 space)
-        for (j = 0; j < 8; j++) {
+        for (j = 0; j < 8; j++) 
+        {
             if (offset > 0) {
                 int iterator1 = (CurrentScreen.row + (j / MAX_COLUMNS)) * MAX_COLUMNS +
                     (CurrentScreen.col[CurrentScreen.row] + (j % MAX_COLUMNS));
@@ -391,12 +400,13 @@ void PutString2(char* buffer, size_t size)
                 gVideo[iterator1].c = getHexChar(offset, j);
                 CurrentScreen.Buffer[iterator1] = getHexChar(offset, j);
 
-                offset &= ~(0xF << (4 * (7 - j))); // Clear current hex digit
+                offset &= ~(0xF << (4 * (7 - j))); // clear current hex digit
             }
         }
 
-        // Print the hexadecimal values (16 bytes - 2 hex digits each)
-        for (j = 0; j < 16 && (i + j) < size; j++) {
+        // print the hexadecimal values (16 bytes - 2 hex digits each)
+        for (j = 0; j < 16 && (i + j) < size; j++) 
+        {
             unsigned char byte = buffer[i + j];
 
             // Print the byte in hex format
@@ -405,7 +415,7 @@ void PutString2(char* buffer, size_t size)
             hex_byte[2] = ' ';
             hex_byte[3] = '\0';
 
-            // Print hex_byte (2 hex digits and space)
+            // hex_byte (2 hex digits and space)
             for (int k = 0; k < 3; k++) 
             {
                 int iteratorr = (CurrentScreen.row + ((8 + j * 3 + k) / MAX_COLUMNS)) * MAX_COLUMNS +
@@ -424,8 +434,9 @@ void PutString2(char* buffer, size_t size)
         gVideo[iteratorr].c = ' ';
         CurrentScreen.Buffer[iteratorr] = ' ';
 
-        // Print ASCII representation (printable characters or '.' for non-printable)
-        for (j = 0; j < 16 && (i + j) < size; j++) {
+        // ascii representation (printable characters or '.' for non-printable)
+        for (j = 0; j < 16 && (i + j) < size; j++) 
+        {
             ascii_byte = buffer[i + j];
 
             if (ascii_byte < 32 || ascii_byte > 126) {  // Non-printable characters
@@ -455,7 +466,6 @@ void PutString2(char* buffer, size_t size)
         CursorPosition(SCREEN_OFFSET);
     }
 }
-
 #pragma optimize("", on)
 
 #pragma optimize("", off)
