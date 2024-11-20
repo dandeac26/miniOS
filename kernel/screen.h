@@ -38,6 +38,8 @@ static SCREEN_STATE CurrentScreen;
 void SetColor(BYTE Color);
 void ClearScreen();
 void PutChar(KEYCODE C, int is_ext);
+
+void PutString2(char* buffer, size_t size);
 void PutString(char* buffer, size_t size);
 
 void PutCharExt(KEYCODE C);

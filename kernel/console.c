@@ -45,7 +45,7 @@ void PrintMBR()
 
         ata_send_command(drive, ATA_CMD_READ_SECTORS, 0, buffer, 1);
 
-        PutString(buffer, SECTOR_SIZE);
+        PutString2(buffer, SECTOR_SIZE);
     }
 }
 #pragma optimize("", on)
