@@ -26,11 +26,12 @@ typedef struct _SCREEN
 
 typedef struct _SCREEN_STATE
 {
-    int col[MAX_LINES]; // for each line say where the cursor is on the columns
+    int col[TOTAL_MAX_LINES]; // for each line say where the cursor is on the columns
     int row; // current row of cursor
-    int line_size[MAX_LINES]; // each line 's size
-    int new_line[MAX_LINES];  // used to make difference between empty lines and new lines
-    char Buffer[MAX_OFFSET];
+    int line_size[TOTAL_MAX_LINES]; // each line 's size
+    int new_line[TOTAL_MAX_LINES];  // used to make difference between empty lines and new lines
+    char Buffer[TOTAL_OFFSET];
+    int view_offset; // for scrolling
 }SCREEN_STATE;
 
 static SCREEN_STATE NormalScreen;
