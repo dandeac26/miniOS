@@ -131,6 +131,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ata.c" />
     <ClCompile Include="console.c" />
     <ClCompile Include="interrupts.c" />
     <ClCompile Include="IO.c" />

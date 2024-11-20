@@ -78,4 +78,11 @@ typedef struct _ATA_IDENTIFY_RESPONSE
 #pragma warning(default:4124)
 #pragma pack(pop)
 
+
+void ata_send_command(int drive, BYTE command, DWORD lba, BYTE* buffer, WORD sector_count);
+int ata_read_sectors(int drive, DWORD lba, BYTE* buffer, WORD sector_count);
+int ata_identify(int drive, ATA_IDENTIFY_RESPONSE* response);
+int ata_supports_lba48(ATA_IDENTIFY_RESPONSE* response);
+void DetectATADevices();
+
 #endif _ATA_COMMANDS_H_

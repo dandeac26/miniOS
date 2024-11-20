@@ -1,4 +1,8 @@
 #include "console.h"
+#include "ata_commands.h"
+
+char screen_buffer[MAX_OFFSET];
+
 
 int GetCommandNumber(const char* cmd, size_t size) 
 {
@@ -31,9 +35,35 @@ void PrintTimeTillBoot()
     LogSerialAndScreen("Time since boot: %d min:%ds\n", minutes, seconds);
 }
 
+#pragma optimize("", off)
 void PrintMBR() {
     ClearScreen();
+    testfnc();
+    //int drive = 0;
+
+    //BYTE buffer[512] = { 0 }; // MBR is exactly one sector (512 bytes)
+
+    //// Read the first sector using the ATA command
+    //ata_send_command(drive, ATA_CMD_READ_SECTORS, 0, &buffer, 1);
+
+    //// Clear the screen buffer before displaying
+    //for (int i = 0; i < MAX_OFFSET; i++) {
+    //    screen_buffer[i] = ' ';
+    //}
+
+    //// Copy the buffer directly into the screen_buffer
+    //int offset = 0;
+    //for (int i = 0; i < 512; i++) {
+    //    // Fill the screen buffer with raw data from the disk sector
+    //    if (offset < MAX_OFFSET) {
+    //        screen_buffer[offset++] = buffer[i];
+    //    }
+    //}
+    //LogSerialAndScreen("read data: %X", screen_buffer);
+    //Log("screen_buffer");
+    //ScreenDisplay(screen_buffer, 10);
 }
+#pragma optimize("", on)
 
 
 void RunCommand(int cmd)

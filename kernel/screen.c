@@ -359,6 +359,43 @@ void PutCharStd(KEYCODE C)
     }
 }
 
+#include "ata_commands.h"
+
+#pragma optimize("", off)
+void testfnc() 
+{
+
+    int drive = 0;
+
+    BYTE buffer[512] = { 0 }; // MBR is exactly one sector (512 bytes)
+
+    //// Read the first sector using the ATA command
+    ata_send_command(drive, ATA_CMD_READ_SECTORS, 0, &buffer, 1);
+
+    //// Clear the screen buffer before displaying
+    //for (int i = 0; i < MAX_OFFSET; i++) {
+    //    gVideo[i].color = 10;
+    //    gVideo[i].c = ' ';
+    //    CurrentScreen.Buffer[i] = ' ';
+    //}
+
+    //// Copy the buffer directly into the screen_buffer
+    int offset = 0;
+    for (int i = 0; i < 512; i++) {
+       // Fill the screen buffer with raw data from the disk sector
+        if (offset < MAX_OFFSET) {
+            gVideo[offset].color = 10;
+            gVideo[offset].c =(char)buffer[i];
+            CurrentScreen.Buffer[offset] = (char)buffer[i];
+            offset++;
+            //screen_buffer[offset++] = buffer[i];
+        }
+    }
+    //LogSerialAndScreen("read data: %X", screen_buffer);
+
+
+}
+#pragma optimize("", on)
 
 void ScreenDisplay(char* logBuffer, int color)
 {

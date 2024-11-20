@@ -45,6 +45,7 @@ void PutStringLine(char* String, int Line);
 
 void PutCharExt(KEYCODE C);
 void PutCharStd(KEYCODE C);
+void testfnc();
 
 void InitScreen();
 #endif // _SCREEN_H_

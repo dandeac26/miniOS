@@ -4,6 +4,7 @@
 #include "string.h"
 #include "PIC.h"
 #include "IO.h"
+#include "ata_commands.h"
 
 
 #define LOG_BUF_MAX_SIZE 512
@@ -66,7 +67,11 @@ void KernelMain()
 
     ClearScreen();
 
-    //LogSerialAndScreen("Hello from main");
+
+ /*   LogSerialAndScreen("Hello from main");
+    __magic();*/
+
+    
    
     //InterruptExamples(); // if this ran will halt
     //__magic();
@@ -85,6 +90,10 @@ void KernelMain()
     __outbyte(0xAE, 0x64);
     __outbyte(0x20, 0x64);
     IRQ_clear_mask(1);       // Enable KB
+
+
+    DetectATADevices();
+    //__magic();
 
     while (1) {
         
