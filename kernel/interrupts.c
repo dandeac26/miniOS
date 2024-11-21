@@ -9,7 +9,7 @@ void* irq_stub_table[];
 extern void* pit_isr_stub;
 
 
-static volatile int tick_count = 0;
+static int tick_count = 0;
 
 /// ADJUSTED TO LAB CODE
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
@@ -52,6 +52,7 @@ void isr_pit_c()
 }
 
 int GetTimeTillBootSeconds() {
+    if (tick_count == 0) tick_count++;
     return tick_count / 100; // 100 ticks = 1 second
 }
 

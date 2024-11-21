@@ -50,6 +50,16 @@ void PrintMBR()
 }
 #pragma optimize("", on)
 
+void printInvalidCMD() {
+    /*char msg[] = "Not a valid command!";
+    int len = 0;
+    while (msg[len] != '\0') {
+        len++;
+    }
+    PutString(msg, len);*/
+
+    LogSerialAndScreen("Invalid Command!\n");
+}
 
 void RunCommand(int cmd)
 {
@@ -68,7 +78,7 @@ void RunCommand(int cmd)
             PrintMBR();
             break;
         case 0:
-            LogSerialAndScreen("Not a valid command!\n");
+            printInvalidCMD();
             break;
         default:
         

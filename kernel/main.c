@@ -80,15 +80,15 @@ void KernelMain()
     pic_disable(); // Initially disable all interrupts
     PIC_remap(0x20, 0x28); // setup PIC
 
-              
-    IRQ_clear_mask(0);       // Enable PIT (IRQ0)
 
-    
     initPIT();  // Timer programming
 
+    IRQ_clear_mask(0);       // Enable PIT (IRQ0)
 
-    __outbyte(0xAE, 0x64);
-    __outbyte(0x20, 0x64);
+
+
+    /*__outbyte(0x64, 0xAE);
+    __outbyte(0x64, 0x60);*/
     IRQ_clear_mask(1);       // Enable KB
 
 

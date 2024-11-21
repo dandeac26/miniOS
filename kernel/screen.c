@@ -2,7 +2,7 @@
 
 #define BUFF_ROW (CurrentScreen.row + CurrentScreen.view_offset)
 #define SCREEN_OFFSET (CurrentScreen.row * MAX_COLUMNS + CurrentScreen.col[BUFF_ROW])
-#define BUFFER_OFFSET ((CurrentScreen.row + CurrentScreen.view_offset) * MAX_COLUMNS + CurrentScreen.col[BUFF_ROW])
+#define BUFFER_OFFSET (BUFF_ROW * MAX_COLUMNS + CurrentScreen.col[BUFF_ROW])
 
 static PSCREEN gVideo = (PSCREEN)(0x000B8000);
 static char CLIBuffer[82];
@@ -131,6 +131,7 @@ void SaveScreenState(SCREEN_STATE* state)
             state->new_line[i] = CurrentScreen.new_line[i];
         }
     }
+    //__magic();
 }
 #pragma optimize("", on)
 
@@ -164,7 +165,7 @@ void RestoreScreenState(SCREEN_STATE* state)
         if (i < MAX_OFFSET) 
         {
             gVideo[i].color = text_color;
-            gVideo[i].c = state->Buffer[CurrentScreen.view_offset * MAX_COLUMNS + i];
+            gVideo[i].c = state->Buffer[i + state->view_offset*MAX_COLUMNS]; //CurrentScreen.view_offset * MAX_COLUMNS + i or (CurrentScreen.view_offset + CurrentScreen.row) * MAX_COLUMNS + (i%MAX_COLUMNS)
         }
        
         CurrentScreen.Buffer[i] = state->Buffer[i];
@@ -177,20 +178,20 @@ void RestoreScreenState(SCREEN_STATE* state)
         }
     }
 
-    if (ConsoleMode == EDIT_MODE) {
-        if (CurrentScreen.col[CurrentScreen.row + CurrentScreen.view_offset] != 0)
+    if (ConsoleMode == EDIT_MODE) 
+    {
+        while (CurrentScreen.new_line[BUFF_ROW] == true && CurrentScreen.line_size[BUFF_ROW] != 0)
         {
-            if (CurrentScreen.row > MAX_LINES)
-            {
-                CurrentScreen.view_offset++;
-            }
-            else
+            if (BUFF_ROW + 1 < TOTAL_MAX_LINES && CurrentScreen.row +1 < MAX_LINES)
             {
                 CurrentScreen.row++;
+                //bug if current row is at end
             }
-            CurrentScreen.new_line[CurrentScreen.row + CurrentScreen.view_offset] = true; //bug if current row is at end
-            /// ADD CHECK IF 
+        //    /// ADD CHECK IF 
         }
+
+        CurrentScreen.col[BUFF_ROW] = 0;
+        CurrentScreen.new_line[BUFF_ROW] = true;
     }
 
     CursorPosition(SCREEN_OFFSET);
@@ -221,6 +222,8 @@ void EnterMode(CONSOLE_MODE mode)
 
 void UpScroll(int num_rows)
 {
+    if (CurrentScreen.view_offset - 1 < 0) return;
+
     CurrentScreen.view_offset--;
 
     for (int i = 0; i < MAX_OFFSET; i++)
@@ -234,6 +237,8 @@ void UpScroll(int num_rows)
 
 void DownScroll(int num_rows)
 {
+    if (CurrentScreen.view_offset + 1 > TOTAL_MAX_LINES) return;
+
     CurrentScreen.view_offset++;
 
     for (int i = 0; i < MAX_OFFSET; i++)
@@ -327,20 +332,89 @@ void PutCharStd(KEYCODE C)
 {
     if (C == ENTER_KEY || C == ENTER_KEY2) 
     {
-        if (CurrentScreen.row + 1 > MAX_LINES) {
-            DownScroll(1);
-        }
-        CurrentScreen.row++;
-        CurrentScreen.new_line[BUFF_ROW] = true;
-        CursorPosition(SCREEN_OFFSET);
 
-        if (ConsoleMode == NORMAL_MODE) 
+        //if (CurrentScreen.row + 1 > MAX_LINES) {
+        //    DownScroll(1);
+        //    //PutString("this", 5);
+        //    //ScreenDisplay("this",10);
+        //    /*CurrentScreen.row--;*/
+        //}
+        //else
+        //{
+            //ScreenDisplay("other",10);
+           /* PutString("other", 6);*/
+        //LogSerialAndScreen("at row : %d", CurrentScreen.row);
+
+        if (CurrentScreen.row + 2< MAX_LINES) 
         {
-            CLIBuffer[CurrentScreen.line_size[BUFF_ROW - 1]] = '\0';
-            ParseCommand(CLIBuffer, CurrentScreen.line_size[BUFF_ROW - 1]);
+            
 
-            CurrentScreen.line_size[BUFF_ROW] = 0;
+            if (ConsoleMode == NORMAL_MODE)
+            {
+                CurrentScreen.row++;
+                CurrentScreen.new_line[BUFF_ROW] = true;
+                CursorPosition(SCREEN_OFFSET);
+
+                CLIBuffer[CurrentScreen.line_size[BUFF_ROW - 1]] = '\0';
+                ParseCommand(CLIBuffer, CurrentScreen.line_size[BUFF_ROW - 1]);
+
+                CurrentScreen.line_size[BUFF_ROW] = 0;
+            }
+            else 
+            {
+                CurrentScreen.row++;
+                CurrentScreen.new_line[BUFF_ROW] = true;
+                CurrentScreen.col[BUFF_ROW] = 0;
+                CursorPosition(SCREEN_OFFSET);
+            }
         }
+        else
+        {
+            
+            if (ConsoleMode == NORMAL_MODE)
+            {
+
+                DownScroll(1);
+                CurrentScreen.row++;
+                CurrentScreen.new_line[BUFF_ROW] = true;
+                CursorPosition(SCREEN_OFFSET);
+                DownScroll(1);
+                DownScroll(1);
+                DownScroll(1);
+
+
+
+                CLIBuffer[CurrentScreen.line_size[BUFF_ROW-1]] = '\0';
+                ParseCommand(CLIBuffer, CurrentScreen.line_size[BUFF_ROW-1]);
+
+                /*CurrentScreen.line_size[BUFF_ROW] = 0;*/
+                CurrentScreen.line_size[BUFF_ROW] = 0;
+            }
+            else
+            {
+                DownScroll(1);
+                CurrentScreen.row++;
+                CurrentScreen.col[BUFF_ROW] = 0;
+                CurrentScreen.new_line[BUFF_ROW] = true;
+                CursorPosition(SCREEN_OFFSET);
+                DownScroll(1);
+                DownScroll(1);
+                DownScroll(1);
+            }
+
+            //DownScroll(1);
+            //DownScroll(1);
+           
+        }
+
+
+           
+
+
+
+        //}
+           
+        
         
     }
     else if (C == KEY_MINUS && BUFF_ROW > 0)
@@ -457,9 +531,13 @@ void PutHexViewString(char* buffer, size_t size)
             if (offset > 0) {
                 int iterator1 = (CurrentScreen.row + (j / MAX_COLUMNS)) * MAX_COLUMNS +
                     (CurrentScreen.col[BUFF_ROW] + (j % MAX_COLUMNS));
+
+                int iteratorBuffer = (BUFF_ROW + (j / MAX_COLUMNS)) * MAX_COLUMNS +
+                    (CurrentScreen.col[BUFF_ROW] + (j % MAX_COLUMNS));
+
                 gVideo[iterator1].color = 10;
                 gVideo[iterator1].c = getHexChar(offset, j);
-                CurrentScreen.Buffer[iterator1] = getHexChar(offset, j);
+                CurrentScreen.Buffer[iteratorBuffer] = getHexChar(offset, j);
 
                 offset &= ~(0xF << (4 * (7 - j))); // clear current hex digit
             }
@@ -482,18 +560,23 @@ void PutHexViewString(char* buffer, size_t size)
                 int iteratorr = (CurrentScreen.row + ((8 + j * 3 + k) / MAX_COLUMNS)) * MAX_COLUMNS +
                     (CurrentScreen.col[BUFF_ROW] + ((8 + j * 3 + k) % MAX_COLUMNS));
 
+                int iteratorrBuffer = (BUFF_ROW + ((8 + j * 3 + k) / MAX_COLUMNS)) * MAX_COLUMNS +
+                    (CurrentScreen.col[BUFF_ROW] + ((8 + j * 3 + k) % MAX_COLUMNS));
+
                 gVideo[iteratorr].color = 10;
                 gVideo[iteratorr].c = hex_byte[k];
-                CurrentScreen.Buffer[iteratorr] = hex_byte[k];
+                CurrentScreen.Buffer[iteratorrBuffer] = hex_byte[k];
             }
         }
 
         int iteratorr = (CurrentScreen.row + (8 + 16 * 3) / MAX_COLUMNS) * MAX_COLUMNS +
             (CurrentScreen.col[BUFF_ROW] + (8 + 16 * 3) % MAX_COLUMNS);
-        
+        int iteratorrBuffer = (BUFF_ROW + (8 + 16 * 3) / MAX_COLUMNS) * MAX_COLUMNS +
+            (CurrentScreen.col[BUFF_ROW] + (8 + 16 * 3) % MAX_COLUMNS);
+
         gVideo[iteratorr].color = 10;
         gVideo[iteratorr].c = ' ';
-        CurrentScreen.Buffer[iteratorr] = ' ';
+        CurrentScreen.Buffer[iteratorrBuffer] = ' ';
 
         // ascii representation (printable characters or '.' for non-printable)
         for (j = 0; j < 16 && (i + j) < size; j++) 
@@ -506,10 +589,13 @@ void PutHexViewString(char* buffer, size_t size)
 
             int iteratorr = (CurrentScreen.row + (8 + 16 * 3 + 1 + j) / MAX_COLUMNS) * MAX_COLUMNS +
                 (CurrentScreen.col[BUFF_ROW] + (8 + 16 * 3 + 1 + j) % MAX_COLUMNS);
+
+            int iteratorrBuffer = (BUFF_ROW + (8 + 16 * 3 + 1 + j) / MAX_COLUMNS) * MAX_COLUMNS +
+                (CurrentScreen.col[BUFF_ROW] + (8 + 16 * 3 + 1 + j) % MAX_COLUMNS);
             
             gVideo[iteratorr].color = 10;
             gVideo[iteratorr].c = ascii_byte;
-            CurrentScreen.Buffer[iteratorr] = ascii_byte;
+            CurrentScreen.Buffer[iteratorrBuffer] = ascii_byte;
         }
 
  
@@ -518,10 +604,6 @@ void PutHexViewString(char* buffer, size_t size)
         if (CurrentScreen.row >= MAX_LINES) 
         {
             DownScroll(1);
-            /*CurrentScreen.row = 0;
-            CurrentScreen.col[BUFF_ROW] = 0;
-            CursorPosition(SCREEN_OFFSET);
-            break;*/
         }
         CurrentScreen.col[BUFF_ROW] = 0;
 
@@ -576,7 +658,7 @@ void ScreenDisplay(char* logBuffer, int color)
             {
                 gVideo[pos].c = logBuffer[i];
                 gVideo[pos].color = color;
-                if(ConsoleMode == NORMAL_MODE) CurrentScreen.Buffer[pos] = logBuffer[i];
+                if(ConsoleMode == NORMAL_MODE) CurrentScreen.Buffer[(currentRow+CurrentScreen.view_offset)*MAX_COLUMNS + currentColumn] = logBuffer[i];
 
                 currentColumn++;
                 
