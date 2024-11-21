@@ -6,7 +6,6 @@
 #include "IO.h"
 #include "ata_commands.h"
 
-
 #define LOG_BUF_MAX_SIZE 512
 
 void
@@ -50,10 +49,6 @@ void initPIT() {
     __outbyte(PIT_CHANNEL0, (divisor >> 8) & 0xFF);
 }
 
-#define KB_CMD 0x64
-#define KB_STATUS 0x64  
-#define KB_DATA 0x60
-
 void initKB()
 {
     __outbyte(KB_CMD, 0xAE);
@@ -71,6 +66,7 @@ test:
         goto test;
     }
 }
+
 void KernelMain()
 {
 
