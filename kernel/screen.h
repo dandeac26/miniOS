@@ -6,8 +6,8 @@
 #include "console.h"
 #include "string.h"
 
-#define TOTAL_OFFSET 80000 // 1000 lines * 80 chars
-#define TOTAL_MAX_LINES 1000
+#define TOTAL_OFFSET   16000   //80000 = 1000 lines * 80 chars
+#define TOTAL_MAX_LINES 200   //1000
 #define MAX_LINES       25
 #define MAX_COLUMNS     80
 #define MAX_OFFSET      2000 //25 lines * 80 chars

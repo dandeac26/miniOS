@@ -9,7 +9,7 @@ void* irq_stub_table[];
 extern void* pit_isr_stub;
 
 
-static int tick_count = 0;
+
 
 /// ADJUSTED TO LAB CODE
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
@@ -39,6 +39,7 @@ void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
     descriptor->Reserved = 0;
 }
 
+static int tick_count = 0;
 
 void isr_pit_c()
 {
@@ -52,7 +53,7 @@ void isr_pit_c()
 }
 
 int GetTimeTillBootSeconds() {
-    if (tick_count == 0) tick_count++;
+    if (tick_count == 0) return 1;
     return tick_count / 100; // 100 ticks = 1 second
 }
 
@@ -65,6 +66,7 @@ void GetTimeTillBoot(int* minutes, int* seconds) {
 
 #pragma optimize("", off)
 void idt_init() {
+    
 	idtr.base = (uintptr_t)&idt[0];
 	idtr.limit = (__int16)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
 

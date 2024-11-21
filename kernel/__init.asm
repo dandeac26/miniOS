@@ -239,8 +239,9 @@ l_long_mode_execution:
     sub rsp, 32 ;allocate shadow space
     call idt_init
     add rsp, 32 ;restore stack p
-     
+    
     ; Load the IDT
+    
     lidt [idtr]   
     
     ; Load the IDT base and limit

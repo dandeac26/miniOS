@@ -61,7 +61,8 @@ void CharBufferInit(char* buf, size_t size, char value)
 void InitScreen()
 {
     ConsoleMode = NORMAL_MODE;
-
+  /*  __magic();
+    void* a = &CurrentScreen;*/
     IntBufferInit(CurrentScreen.col, TOTAL_MAX_LINES, 0);
     CurrentScreen.row = 0;
     CurrentScreen.view_offset = 0;
