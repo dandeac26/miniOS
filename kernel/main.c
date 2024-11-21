@@ -43,13 +43,34 @@ void initPIT() {
     __int16 divisor = (__int16)(PIT_FREQ / 100);
 
     // Send the command byte
-    __outbyte(PIT_CMD, 0x36);  // 0x36: Mode 3 (square wave), channel 0, lobyte/hibyte access
+    __outbyte(PIT_CMD, 0x34);  // 0x36: Mode 3 (square wave), channel 0, lobyte/hibyte access
 
     // Send the frequency divisor (low byte first, then high byte)
     __outbyte(PIT_CHANNEL0, divisor & 0xFF);
     __outbyte(PIT_CHANNEL0, (divisor >> 8) & 0xFF);
 }
 
+#define KB_CMD 0x64
+#define KB_STATUS 0x64  
+#define KB_DATA 0x60
+
+void initKB()
+{
+    __outbyte(KB_CMD, 0xAE);
+    __outbyte(KB_CMD, 0x60);
+    BYTE status;
+test:
+
+    status = __inbyte(KB_STATUS);
+    if (!(status & 0x02))
+    {
+        __outbyte(KB_DATA, 0b01100101);
+    }
+    else
+    {
+        goto test;
+    }
+}
 void KernelMain()
 {
 
@@ -87,8 +108,7 @@ void KernelMain()
 
 
 
-    /*__outbyte(0x64, 0xAE);
-    __outbyte(0x64, 0x60);*/
+    initKB();
     IRQ_clear_mask(1);       // Enable KB
 
 

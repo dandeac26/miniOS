@@ -376,6 +376,7 @@ void PutCharStd(KEYCODE C)
             {
 
                 DownScroll(1);
+                int initialrow = BUFF_ROW;
                 CurrentScreen.row++;
                 CurrentScreen.new_line[BUFF_ROW] = true;
                 CursorPosition(SCREEN_OFFSET);
@@ -385,8 +386,8 @@ void PutCharStd(KEYCODE C)
 
 
 
-                CLIBuffer[CurrentScreen.line_size[BUFF_ROW-1]] = '\0';
-                ParseCommand(CLIBuffer, CurrentScreen.line_size[BUFF_ROW-1]);
+                CLIBuffer[CurrentScreen.line_size[initialrow]] = '\0';
+                ParseCommand(CLIBuffer, CurrentScreen.line_size[initialrow]);
 
                 /*CurrentScreen.line_size[BUFF_ROW] = 0;*/
                 CurrentScreen.line_size[BUFF_ROW] = 0;
