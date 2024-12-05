@@ -31,7 +31,7 @@ typedef struct _SCREEN_STATE
     int line_size[TOTAL_MAX_LINES]; // each line 's size
     int new_line[TOTAL_MAX_LINES];  // used to make difference between empty lines and new lines
     char Buffer[TOTAL_OFFSET];
-    int view_offset; // for scrolling
+    int view_offset; // for scrolling (offsets current screen buffer)
 }SCREEN_STATE;
 
 static SCREEN_STATE NormalScreen;

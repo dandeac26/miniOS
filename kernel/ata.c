@@ -31,6 +31,7 @@ void ata_send_command(int drive, BYTE command, DWORD lba, BYTE* buffer, WORD sec
     if (command == ATA_CMD_READ_SECTORS || command == ATA_CMD_READ_SECTORS_EXT) {
         for (int i = 0; i < 256 * sector_count; ++i) {
             ((WORD*)buffer)[i] = __inword(base + ATA_REG_DATA);
+            LogSerialAndScreen("Data: %c\n", (BYTE)buffer[i]);
         }
     }
 }
