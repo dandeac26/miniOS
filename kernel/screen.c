@@ -283,7 +283,14 @@ void PutCharExt(KEYCODE C)
         CursorPosition(SCREEN_OFFSET);
         CurrentScreen.line_size[BUFF_ROW]--;
     }
-   
+    else if (C == KEY_UP && shiftKeyDown && BUFF_ROW > 0)
+    {
+        UpScroll(1);
+    }
+    else if (C == KEY_DOWN && shiftKeyDown && BUFF_ROW < TOTAL_MAX_LINES)
+    {
+        DownScroll(1);
+    }
     else if (C == KEY_UP && CurrentScreen.row > 0 && ConsoleMode == EDIT_MODE) 
     {
         CurrentScreen.row--;
@@ -337,7 +344,7 @@ void PutCharStd(KEYCODE C)
     {
         shiftKeyDown = true;
     }
-    else if (C == (KEY_LSHIFT | 0x80) || C == (KEY_RSHIFT | 0x80))
+    else if (C == (KEYCODE)(0xAA) || C == (KEYCODE)(0xB6))
     {
         shiftKeyDown = false;
     }
@@ -429,14 +436,7 @@ void PutCharStd(KEYCODE C)
         
         
     }
-    else if (C == KEY_KP_PLUS && BUFF_ROW > 0)
-    {
-        UpScroll(1);
-    }
-    else if (C == KEY_KP_MINUS && BUFF_ROW < TOTAL_MAX_LINES)
-    {
-        DownScroll(1);
-    }
+   
     else if (C == BACKSPACE_KEY && CurrentScreen.col[BUFF_ROW] > 0) 
     {
         CurrentScreen.col[BUFF_ROW]--;
@@ -471,7 +471,12 @@ void PutCharStd(KEYCODE C)
     else 
     {
         gVideo[SCREEN_OFFSET].color = text_color;
-
+        char pressed_key = (char)C; //= shiftKeyDown ? ShiftChar[(int)((char)C)] : (char)C;
+        if (shiftKeyDown && C == KEY_MINUS)
+        {
+            pressed_key = (char)KEY_UNDERSCORE;
+        }
+        
         if (is_value(C) && CurrentScreen.line_size[BUFF_ROW] < MAX_COLUMNS)
         {
             CurrentScreen.line_size[BUFF_ROW]++;
@@ -484,11 +489,11 @@ void PutCharStd(KEYCODE C)
                 CurrentScreen.Buffer[BUFF_ROW * MAX_COLUMNS + i] = CurrentScreen.Buffer[BUFF_ROW * MAX_COLUMNS + i - 1];
             }
 
-            gVideo[SCREEN_OFFSET].c = (char)C;
+            gVideo[SCREEN_OFFSET].c = pressed_key;
 
-            CurrentScreen.Buffer[BUFFER_OFFSET] = (char)C;
+            CurrentScreen.Buffer[BUFFER_OFFSET] = pressed_key;
            
-            CLIBuffer[CurrentScreen.col[BUFF_ROW]++] = (char)C;
+            CLIBuffer[CurrentScreen.col[BUFF_ROW]++] = pressed_key;
         }
 
         if (CurrentScreen.col[BUFF_ROW] >= MAX_COLUMNS) 

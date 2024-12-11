@@ -158,7 +158,7 @@ void keyboard_interrupt_handler_c() {
     else {
         // Handle as a standard scancode
         key = _kkybrd_scancode_std[scancode];
-        if (key != KEY_UNKNOWN) {
+        if (key != KEY_UNKNOWN || key == (KEYCODE)(0xAA) || key == (KEYCODE)(0xB6)) {
             PutCharStd(key);  
         }
     }
