@@ -6,7 +6,9 @@
 
 static PSCREEN gVideo = (PSCREEN)(0x000B8000);
 static char CLIBuffer[82];
-static int shiftKeyDown;
+
+
+int shiftKeyDown = false;
 
 void CursorMove(int row, int col)
 {
@@ -343,12 +345,8 @@ void PutCharStd(KEYCODE C)
     if (C == KEY_LSHIFT || C == KEY_RSHIFT)
     {
         shiftKeyDown = true;
-    }
-    else if (C == (KEYCODE)(0xAA) || C == (KEYCODE)(0xB6))
-    {
-        shiftKeyDown = false;
-    }
-    else if (C == ENTER_KEY || C == ENTER_KEY2) 
+    }    
+    else if (C == ENTER_KEY || C == ENTER_KEY2)
     {
 
         //if (CurrentScreen.row + 1 > MAX_LINES) {
@@ -475,8 +473,9 @@ void PutCharStd(KEYCODE C)
         if (shiftKeyDown && C == KEY_MINUS)
         {
             pressed_key = (char)KEY_UNDERSCORE;
+            
         }
-        
+        shiftKeyDown = false;
         if (is_value(C) && CurrentScreen.line_size[BUFF_ROW] < MAX_COLUMNS)
         {
             CurrentScreen.line_size[BUFF_ROW]++;

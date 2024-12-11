@@ -14,6 +14,8 @@
 #define ENTER_KEY 10
 #define ENTER_KEY2 13
 
+extern int shiftKeyDown;
+
 #pragma pack(push)
 #pragma pack(1)
 typedef struct _SCREEN
