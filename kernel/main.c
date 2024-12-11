@@ -6,6 +6,7 @@
 #include "IO.h"
 #include "ata_commands.h"
 
+
 #define LOG_BUF_MAX_SIZE 512
 
 void

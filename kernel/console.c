@@ -7,7 +7,7 @@ char screen_buffer[MAX_OFFSET];
 int GetCommandNumber(const char* cmd, size_t size) 
 {
 
-    const char CommandList[][10] = { "cls", "edit", "time", "printmbr"};
+    const char CommandList[][15] = { "cls", "edit", "time", "printmbr", "test_run", "test_run_all", "test_list"};
     int numCommands = sizeof(CommandList) / sizeof(CommandList[0]);
 
     for (int i = 0; i < numCommands; i++)
@@ -61,6 +61,22 @@ void printInvalidCMD() {
     LogSerialAndScreen("Invalid Command!\n");
 }
 
+void test_run()
+{
+    LogSerialAndScreen("test_run was ran!\n");
+}
+
+void test_run_all()
+{
+    LogSerialAndScreen("test_run_all was ran!\n");
+}
+
+void test_list()
+{
+    LogSerialAndScreen("test_list was ran!\n");
+}
+
+
 void RunCommand(int cmd)
 {
     switch (cmd)
@@ -77,6 +93,15 @@ void RunCommand(int cmd)
         case 4:
             PrintMBR();
             break;
+        case 5:
+            test_run();
+            break;
+        case 6:
+            test_run_all();
+            break;
+        case 7:
+            test_list();
+            break;
         case 0:
             printInvalidCMD();
             break;
@@ -85,6 +110,8 @@ void RunCommand(int cmd)
             break;
     }
 }
+
+
 
 
 int is_format_char(char c) 

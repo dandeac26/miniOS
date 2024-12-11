@@ -137,16 +137,19 @@
     <ClCompile Include="IO.c" />
     <ClCompile Include="logging.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="mem.c" />
     <ClCompile Include="PIC.c" />
     <ClCompile Include="screen.c" />
     <ClCompile Include="string.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bochs_map.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="ata_commands.h" />
     <ClInclude Include="interrupts.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="mem.h" />
     <ClInclude Include="PIC.h" />
     <ClInclude Include="IO.h" />
     <ClInclude Include="scancode.h" />

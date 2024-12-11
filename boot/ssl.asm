@@ -8,6 +8,8 @@ TOTAL_KERNEL_CYLINDERS             equ 6
 LAST_KERNEL_CYLINDER               equ CYLINDER_MBR_SSL + TOTAL_KERNEL_CYLINDERS
 DMA_BOUNDARY_ALERT                 equ 0xDC00 ; 0xDC00 + 0x2400 == 0x10000 and DMA gives boundary error
 
+;mmap_ent equ 0x9000             ; the number of entries will be stored at 0x8000
+
 [org 0x7E00]
 [bits 16]
 SSL:
@@ -50,12 +52,20 @@ SSL:
  
 .success:        
     ;break
+    ;call do_e820
+    ;break
     cli                    ; starting RM to PM32 transition
     lgdt    [GDT]
     mov        eax,    cr0
     or        al,        1
     mov        cr0,    eax     ; we are in protected mode but we need to set the CS register  
     jmp        8:.bits32       ; we change the CS to 8 (index of FLAT_DESCRIPTOR_CODE32 entry)
+
+
+
+
+
+
 
 .bits32:
 [bits 32]

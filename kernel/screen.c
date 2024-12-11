@@ -6,7 +6,7 @@
 
 static PSCREEN gVideo = (PSCREEN)(0x000B8000);
 static char CLIBuffer[82];
-
+static int shiftKeyDown;
 
 void CursorMove(int row, int col)
 {
@@ -63,6 +63,7 @@ void InitScreen()
     ConsoleMode = NORMAL_MODE;
   /*  __magic();
     void* a = &CurrentScreen;*/
+    shiftKeyDown = false;
     IntBufferInit(CurrentScreen.col, TOTAL_MAX_LINES, 0);
     CurrentScreen.row = 0;
     CurrentScreen.view_offset = 0;
@@ -331,7 +332,15 @@ void PutCharExt(KEYCODE C)
 
 void PutCharStd(KEYCODE C)
 {
-    if (C == ENTER_KEY || C == ENTER_KEY2) 
+    if (C == KEY_LSHIFT || C == KEY_RSHIFT)
+    {
+        shiftKeyDown = true;
+    }
+    else if (C == (KEY_LSHIFT | 0x80) || C == (KEY_RSHIFT | 0x80))
+    {
+        shiftKeyDown = false;
+    }
+    else if (C == ENTER_KEY || C == ENTER_KEY2) 
     {
 
         //if (CurrentScreen.row + 1 > MAX_LINES) {
