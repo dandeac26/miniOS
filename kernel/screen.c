@@ -306,6 +306,7 @@ void PutCharExt(KEYCODE C)
                 CurrentScreen.col[BUFF_ROW] = CurrentScreen.col[BUFF_ROW - 1];
         }
     }
+  
     else if (C == KEY_LEFT && CurrentScreen.col[BUFF_ROW] > 0) 
     {
         CurrentScreen.col[BUFF_ROW]--;
@@ -428,11 +429,11 @@ void PutCharStd(KEYCODE C)
         
         
     }
-    else if (C == KEY_MINUS && BUFF_ROW > 0)
+    else if (C == KEY_KP_PLUS && BUFF_ROW > 0)
     {
         UpScroll(1);
     }
-    else if (C == KEY_EQUAL && BUFF_ROW < TOTAL_MAX_LINES)
+    else if (C == KEY_KP_MINUS && BUFF_ROW < TOTAL_MAX_LINES)
     {
         DownScroll(1);
     }
