@@ -469,13 +469,14 @@ void PutCharStd(KEYCODE C)
     else 
     {
         gVideo[SCREEN_OFFSET].color = text_color;
+
         char pressed_key = (char)C; //= shiftKeyDown ? ShiftChar[(int)((char)C)] : (char)C;
+       
         if (shiftKeyDown && C == KEY_MINUS)
         {
             pressed_key = (char)KEY_UNDERSCORE;
-            
         }
-        shiftKeyDown = false;
+
         if (is_value(C) && CurrentScreen.line_size[BUFF_ROW] < MAX_COLUMNS)
         {
             CurrentScreen.line_size[BUFF_ROW]++;

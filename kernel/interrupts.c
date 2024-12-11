@@ -149,7 +149,7 @@ void keyboard_interrupt_handler_c() {
     
     if (scancode == 0xAA || scancode == 0xB6)
     {
-        shiftKeyDown = false; // Shift key 
+        shiftKeyDown = false; 
     }
 
     KEYCODE key;
