@@ -1,4 +1,5 @@
 #include "console.h"
+#include "mem.h"
 
 
 char screen_buffer[MAX_OFFSET];
@@ -7,7 +8,7 @@ char screen_buffer[MAX_OFFSET];
 int GetCommandNumber(const char* cmd, size_t size) 
 {
 
-    const char CommandList[][10] = { "cls", "edit", "time", "printmbr"};
+    const char CommandList[][15] = { "cls", "edit", "time", "printmbr", "test_run", "test_run_all", "test_list"};
     int numCommands = sizeof(CommandList) / sizeof(CommandList[0]);
 
     for (int i = 0; i < numCommands; i++)
@@ -50,16 +51,90 @@ void PrintMBR()
 }
 #pragma optimize("", on)
 
-void printInvalidCMD() {
-    /*char msg[] = "Not a valid command!";
-    int len = 0;
-    while (msg[len] != '\0') {
-        len++;
-    }
-    PutString(msg, len);*/
 
+void printInvalidCMD() 
+{
     LogSerialAndScreen("Invalid Command!\n");
 }
+
+
+void test_run()
+{
+    QWORD newFrame;
+    DWORD frameCount = 1; // Number of frames to allocate
+
+    if (1 == 1) 
+    {
+        LogSerialAndScreen("Testing true: %d\n", 1);
+    }
+
+    BOOLEAN result = frame_alloc(&newFrame, frameCount);
+
+    LogSerialAndScreen("frame_alloc result: %d\n", result);
+    if (result)
+    {
+        LogSerialAndScreen("Allocated frame at address: %X\n", newFrame);
+    }
+    else 
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
+    QWORD newFrame1;
+    DWORD frameCount1 = 2;
+
+
+    BOOLEAN result1 = frame_alloc(&newFrame1, frameCount1);
+
+    LogSerialAndScreen("frame_alloc result: %d\n", result1);
+    if (result1)
+    {
+        LogSerialAndScreen("Allocated frame1 at address: %X\n", newFrame1);
+    }
+    else
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
+    BOOLEAN result_realloc = frame_alloc(&newFrame, frameCount);
+    if (result_realloc)
+    {
+        LogSerialAndScreen("Reallocated frame at address: %X\n", newFrame);
+    }
+    else
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
+
+    frame_free(newFrame1, frameCount1);
+
+    BOOLEAN result_alloc_after_free = frame_alloc(&newFrame1, frameCount1);
+    
+    if (result_alloc_after_free)
+    {
+        LogSerialAndScreen("Allocated recently freed frame1 at address: %X\n", newFrame1);
+    }
+    else
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
+    LogSerialAndScreen("test_run was ran!\n");
+}
+
+
+void test_run_all()
+{
+    LogSerialAndScreen("test_run_all was ran!\n");
+}
+
+
+void test_list()
+{
+    LogSerialAndScreen("test_list was ran!\n");
+}
+
 
 void RunCommand(int cmd)
 {
@@ -77,6 +152,15 @@ void RunCommand(int cmd)
         case 4:
             PrintMBR();
             break;
+        case 5:
+            test_run();
+            break;
+        case 6:
+            test_run_all();
+            break;
+        case 7:
+            test_list();
+            break;
         case 0:
             printInvalidCMD();
             break;
@@ -87,6 +171,8 @@ void RunCommand(int cmd)
 }
 
 
+
+
 int is_format_char(char c) 
 {
     return c == '\t' || c == '\n' || c == '\r';
@@ -94,7 +180,7 @@ int is_format_char(char c)
 
 int is_value(char C) 
 {
-    return (C == KEY_SPACE || (C >= 'A' && C <= 'Z') || (C >= 'a' && C <= 'z') || (C >= '0' && C <= '9') || (C == '.' || C == ',' || C == ';' || C == '-' || C == '\''));
+    return (C == KEY_SPACE || (C >= 'A' && C <= 'Z') || (C >= 'a' && C <= 'z') || (C >= '0' && C <= '9') || (C == '.' || C == ',' || C == ';' || C == '-' || C=='_' ||  C == '\''));
 }
 
 

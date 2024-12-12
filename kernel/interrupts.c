@@ -139,26 +139,36 @@ void keyboard_interrupt_handler_c() {
     unsigned char scancode;
     scancode = __inbyte(0x60);
     
-    if (scancode == 0xE0 || scancode == 0xE1) {
+    if (scancode == 0xE0 || scancode == 0xE1) 
+    {
         is_extended = 1;
         __send_EOI();
         return;
     }
 
+    
+    if (scancode == 0xAA || scancode == 0xB6)
+    {
+        shiftKeyDown = false; 
+    }
+
     KEYCODE key;
 
-    if (is_extended) {
-        
+    if (is_extended) 
+    {
         key = _kkybrd_scancode_ext[scancode];
-        if (key != KEY_UNKNOWN) {
+        if (key != KEY_UNKNOWN) 
+        {
             PutCharExt(key);  
         }
         is_extended = 0;  
     }
-    else {
+    else 
+    {
         // Handle as a standard scancode
         key = _kkybrd_scancode_std[scancode];
-        if (key != KEY_UNKNOWN) {
+        if (key != KEY_UNKNOWN || key == (KEYCODE)(0xAA) || key == (KEYCODE)(0xB6)) 
+        {
             PutCharStd(key);  
         }
     }
