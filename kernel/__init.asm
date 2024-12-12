@@ -28,7 +28,7 @@
 
 %define break xchg bx, bx
 
-IMPORTFROMC KernelMain
+;IMPORTFROMC KernelMain
 
 TOP_OF_STACK                equ 0x200000
 KERNEL_BASE_PHYSICAL        equ 0x200000
@@ -56,9 +56,6 @@ ASMEntryPoint:
     JMP 8:l_long_mode_execution 
 
     l_end_64bit_execution:
-
-    MOV     EAX, KernelMain     ; after 64bits transition is implemented the kernel must be compiled on x64
-    CALL    EAX
     
     break
     CLI
@@ -223,6 +220,7 @@ extern idtr
 extern isr_pit_c
 extern keyboard_interrupt_handler_c
 ;global init_pit
+extern KernelMain
 
 l_long_mode_execution:
 
@@ -239,12 +237,17 @@ l_long_mode_execution:
     sub rsp, 32 ;allocate shadow space
     call idt_init
     add rsp, 32 ;restore stack p
-     
+    
     ; Load the IDT
+    
     lidt [idtr]   
     
     ; Load the IDT base and limit
     sti                  ; Set the interrupt flag
+
+    ; ENTER KERNEL
+    MOV     RAX, KernelMain     ; after 64bits transition is implemented the kernel must be compiled on x64
+    CALL    RAX
 
     JMP l_end_64bit_execution
 

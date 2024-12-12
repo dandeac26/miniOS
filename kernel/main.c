@@ -4,7 +4,7 @@
 #include "string.h"
 #include "PIC.h"
 #include "IO.h"
-
+#include "ata_commands.h"
 
 #define LOG_BUF_MAX_SIZE 512
 
@@ -42,11 +42,29 @@ void initPIT() {
     __int16 divisor = (__int16)(PIT_FREQ / 100);
 
     // Send the command byte
-    __outbyte(PIT_CMD, 0x36);  // 0x36: Mode 3 (square wave), channel 0, lobyte/hibyte access
+    __outbyte(PIT_CMD, 0x34);  // 0x36: Mode 3 (square wave), channel 0, lobyte/hibyte access
 
     // Send the frequency divisor (low byte first, then high byte)
     __outbyte(PIT_CHANNEL0, divisor & 0xFF);
     __outbyte(PIT_CHANNEL0, (divisor >> 8) & 0xFF);
+}
+
+void initKB()
+{
+    __outbyte(KB_CMD, 0xAE);
+    __outbyte(KB_CMD, 0x60);
+    BYTE status;
+test:
+
+    status = __inbyte(KB_STATUS);
+    if (!(status & 0x02))
+    {
+        __outbyte(KB_DATA, 0b01100101);
+    }
+    else
+    {
+        goto test;
+    }
 }
 
 void KernelMain()
@@ -66,7 +84,11 @@ void KernelMain()
 
     ClearScreen();
 
-    //LogSerialAndScreen("Hello from main");
+
+ /*   LogSerialAndScreen("Hello from main");
+    __magic();*/
+
+    
    
     //InterruptExamples(); // if this ran will halt
     //__magic();
@@ -75,16 +97,19 @@ void KernelMain()
     pic_disable(); // Initially disable all interrupts
     PIC_remap(0x20, 0x28); // setup PIC
 
-              
-    IRQ_clear_mask(0);       // Enable PIT (IRQ0)
 
-    
     initPIT();  // Timer programming
 
+    IRQ_clear_mask(0);       // Enable PIT (IRQ0)
 
-    __outbyte(0xAE, 0x64);
-    __outbyte(0x20, 0x64);
+
+
+    initKB();
     IRQ_clear_mask(1);       // Enable KB
+
+
+    //DetectATADevices();
+    //__magic();
 
     while (1) {
         

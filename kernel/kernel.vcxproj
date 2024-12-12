@@ -131,6 +131,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ata.c" />
     <ClCompile Include="console.c" />
     <ClCompile Include="interrupts.c" />
     <ClCompile Include="IO.c" />
@@ -142,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console.h" />
+    <ClInclude Include="ata_commands.h" />
     <ClInclude Include="interrupts.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="main.h" />

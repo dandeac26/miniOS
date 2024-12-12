@@ -8,8 +8,8 @@ void* isr_stub_table[];
 void* irq_stub_table[];
 extern void* pit_isr_stub;
 
+static int tick_count = 0;
 
-static volatile int tick_count = 0;
 
 /// ADJUSTED TO LAB CODE
 void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
@@ -40,18 +40,20 @@ void idt_set_descriptor(__int8 vector, void* isr, __int8 flags) {
 }
 
 
+
 void isr_pit_c()
 {
     tick_count++;
 
     // Check if 2 seconds (100 ticks at 100 Hz) have passed
-    if (tick_count % 200 == 0) {
-        //LogSerialAndScreen("test with tick = %d\n", tick_count);
-    }
+    //if (tick_count % 200 == 0) {
+    //    //LogSerialAndScreen("test with tick = %d\n", tick_count);
+    //}
     __send_EOI();
 }
 
 int GetTimeTillBootSeconds() {
+    if (tick_count == 0) return 1;
     return tick_count / 100; // 100 ticks = 1 second
 }
 
@@ -64,6 +66,7 @@ void GetTimeTillBoot(int* minutes, int* seconds) {
 
 #pragma optimize("", off)
 void idt_init() {
+    
 	idtr.base = (uintptr_t)&idt[0];
 	idtr.limit = (__int16)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
 

@@ -1,9 +1,13 @@
 #include "console.h"
 
+
+char screen_buffer[MAX_OFFSET];
+
+
 int GetCommandNumber(const char* cmd, size_t size) 
 {
 
-    const char CommandList[][10] = { "cls", "edit", "time"}; 
+    const char CommandList[][10] = { "cls", "edit", "time", "printmbr"};
     int numCommands = sizeof(CommandList) / sizeof(CommandList[0]);
 
     for (int i = 0; i < numCommands; i++)
@@ -31,6 +35,31 @@ void PrintTimeTillBoot()
     LogSerialAndScreen("Time since boot: %d min:%ds\n", minutes, seconds);
 }
 
+#pragma optimize("", off)
+void PrintMBR() 
+{
+    int drive = 0;
+    if (DetectedATADevice(drive) == true)
+    {
+        BYTE buffer[SECTOR_SIZE] = { 0 }; // MBR is exactly one sector (512 bytes)
+
+        ata_send_command(drive, ATA_CMD_READ_SECTORS, 0, buffer, 1);
+
+        PutHexViewString(buffer, SECTOR_SIZE);
+    }
+}
+#pragma optimize("", on)
+
+void printInvalidCMD() {
+    /*char msg[] = "Not a valid command!";
+    int len = 0;
+    while (msg[len] != '\0') {
+        len++;
+    }
+    PutString(msg, len);*/
+
+    LogSerialAndScreen("Invalid Command!\n");
+}
 
 void RunCommand(int cmd)
 {
@@ -40,13 +69,16 @@ void RunCommand(int cmd)
              ClearScreen();
             break;
         case 2: // edit
-             EnterMode(EDIT_MODE); /// For some reason vede functia fara sa o pun in header ??
+             EnterMode(EDIT_MODE);
             break;
         case 3:
             PrintTimeTillBoot();
             break;
+        case 4:
+            PrintMBR();
+            break;
         case 0:
-            LogSerialAndScreen("Not a valid command!\n");
+            printInvalidCMD();
             break;
         default:
         

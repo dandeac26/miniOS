@@ -4,6 +4,7 @@
 #include "main.h"
 #include "screen.h"
 #include "interrupts.h"
+#include "ata_commands.h"
 
 #define BRIGHT_WHITE_COLOR          0xF
 #define YELLOW_COLOR                0xE
