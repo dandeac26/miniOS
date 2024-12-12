@@ -3,8 +3,7 @@
 
 
 #include "main.h"
-#include "bochs_map.h"
-#include "string.h"
+
 
 #ifndef TRUE
 #define TRUE ( 1 == 1 )
@@ -38,6 +37,7 @@ typedef struct _HEAP
 }HEAP;
 
 
+void init_memory_allocators();
 
 ///////////////////////////////////////////// FRAME ///////////////////////////////////////////
 

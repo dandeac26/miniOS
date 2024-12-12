@@ -1,4 +1,5 @@
 #include "console.h"
+#include "mem.h"
 
 
 char screen_buffer[MAX_OFFSET];
@@ -63,6 +64,67 @@ void printInvalidCMD() {
 
 void test_run()
 {
+    QWORD newFrame;
+    DWORD frameCount = 1; // Number of frames to allocate
+
+    if (1 == 1) 
+    {
+        LogSerialAndScreen("Testing true: %d\n", 1);
+    }
+
+    // Call frame_alloc and check the result
+    BOOLEAN result = frame_alloc(&newFrame, frameCount);
+
+    LogSerialAndScreen("frame_alloc result: %d\n", result);
+    if (result)
+    {
+        LogSerialAndScreen("Allocated frame at address: %X\n", newFrame);
+    }
+    else 
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
+    QWORD newFrame1;
+    DWORD frameCount1 = 2;
+
+    // Call frame_alloc and check the result
+    BOOLEAN result1 = frame_alloc(&newFrame1, frameCount1);
+
+    LogSerialAndScreen("frame_alloc result: %d\n", result1);
+    if (result1)
+    {
+        LogSerialAndScreen("Allocated frame1 at address: %X\n", newFrame1);
+    }
+    else
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
+    BOOLEAN result_realloc = frame_alloc(&newFrame, frameCount);
+    if (result_realloc)
+    {
+        LogSerialAndScreen("Reallocated frame at address: %X\n", newFrame);
+    }
+    else
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
+
+    frame_free(newFrame1, frameCount1);
+
+    BOOLEAN result_alloc_after_free = frame_alloc(&newFrame1, frameCount1);
+    
+    if (result_alloc_after_free)
+    {
+        LogSerialAndScreen("Allocated recently freed frame1 at address: %X\n", newFrame1);
+    }
+    else
+    {
+        LogSerialAndScreen("Failed to allocate frame.\n");
+    }
+
     LogSerialAndScreen("test_run was ran!\n");
 }
 

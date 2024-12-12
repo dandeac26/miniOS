@@ -5,7 +5,7 @@
 #include "PIC.h"
 #include "IO.h"
 #include "ata_commands.h"
-
+#include "mem.h"
 
 #define LOG_BUF_MAX_SIZE 512
 
@@ -74,6 +74,8 @@ void KernelMain()
     __enableSSE();  // only for demo; in the future will be called from __init.asm
 
     InitScreen();
+
+    init_memory_allocators();
 
     ClearScreen();
 
