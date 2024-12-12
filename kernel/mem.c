@@ -17,23 +17,31 @@ static QWORD usable_base = 0;  // Starting address of usable RAM
 void init_frame_allocator()
 {
     cl_memset(frame_bitmap, 0, sizeof(frame_bitmap));
-
+    cl_memset(frame_bitmap, 0xFF, 128);
     // Calculate total frames from the memory map
     for (int i = 0; i < sizeof(int15_e820_entries) / sizeof(INT15_MEMORY_MAP_ENTRY); i++)
     {
+        QWORD start = int15_e820_entries[i].BaseAddress / FRAME_SIZE;
+        QWORD length = int15_e820_entries[i].Length / FRAME_SIZE;
         if (int15_e820_entries[i].Type == MemoryMapTypeUsableRAM) 
         {
-            QWORD start = int15_e820_entries[i].BaseAddress / FRAME_SIZE;
-            QWORD length = int15_e820_entries[i].Length / FRAME_SIZE;
-
+            
+            total_frames = (start + length);
             // Mark usable frames as free
-            for (QWORD frame = start; frame < start + length; frame++) 
+            //for (QWORD frame = start; frame < start + length; frame++) 
+            //{
+            //    if (usable_base == 0) // makes sure it sets usable base to the beginning of the usable free frames
+            //    {
+            //        usable_base = frame * FRAME_SIZE;
+            //    }
+            //    total_frames++;
+            //}
+        }
+        else
+        {
+            for (QWORD i = start; i < start + length; i++)
             {
-                if (usable_base == 0) // makes sure it sets usable base to the beginning of the usable free frames
-                {
-                    usable_base = frame * FRAME_SIZE;
-                }
-                total_frames++;
+                frame_bitmap[i / 8] |= (1 << (i % 8)); // sets all other spaces with 1 so we know its used
             }
         }
     }
