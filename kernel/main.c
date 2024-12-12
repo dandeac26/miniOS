@@ -75,7 +75,7 @@ void KernelMain()
 
     InitScreen();
 
-    init_memory_allocators();
+    
 
     ClearScreen();
 
@@ -110,6 +110,7 @@ void KernelMain()
     initKB();
     IRQ_clear_mask(1);       // Enable KB
 
+    init_memory_allocators();
 
     //DetectATADevices();
     //__magic();
