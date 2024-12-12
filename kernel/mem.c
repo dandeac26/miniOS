@@ -2,36 +2,16 @@
 #include "bochs_map.h"
 #include "string.h"
 
-///////////////////////////////////////////// FRAME ///////////////////////////////////////////
-
-
-//BOOLEAN frame_alloc(QWORD* frame, DWORD frame_count)
-//{
-//	return FALSE;
-//}
-//
-//
-//void frame_free(QWORD frame, DWORD frame_count)
-//{
-//
-//}
-//
-//
-//BOOLEAN are_frames_free(QWORD start_frame, DWORD frame_count)
-//{
-//	return FALSE;
-//}
-
-
 #define FRAME_SIZE 4096 // 4KB frames
-#define BITMAP_SIZE 0x100000 // Adjust this size based on your maximum RAM (e.g., 128MB => 4KB * 32,768 frames)
+#define BITMAP_SIZE 0x100000 // For 128MB => 4KB * 32,768 frames)
 
-static BYTE frame_bitmap[BITMAP_SIZE]; // Bitmap to track frame allocations
+static BYTE frame_bitmap[BITMAP_SIZE];
 
-static QWORD total_frames = 0; // Total number of frames available
+static QWORD total_frames = 0; 
 static QWORD usable_base = 0;  // Starting address of usable RAM
 
-// Initialize the frame allocator
+
+///////////////////////////////////////////// FRAME ///////////////////////////////////////////
 
 
 void init_frame_allocator()
@@ -59,7 +39,7 @@ void init_frame_allocator()
     }
 }
 
-// Frame allocation function
+
 BOOLEAN frame_alloc(QWORD* frame, DWORD frame_count) 
 {
     if (!frame || frame_count == 0)
@@ -74,7 +54,7 @@ BOOLEAN frame_alloc(QWORD* frame, DWORD frame_count)
     for (QWORD i = 0; i < total_frames; i++)
     {
         if (!(frame_bitmap[i / 8] & (1 << (i % 8)))) 
-        { // Check if the frame is free
+        { 
             if (free_count == 0) 
             {
                 start_frame = i;
@@ -106,7 +86,7 @@ BOOLEAN frame_alloc(QWORD* frame, DWORD frame_count)
     return TRUE;
 }
 
-// Frame freeing function
+
 void frame_free(QWORD frame, DWORD frame_count) 
 {
     if (frame % FRAME_SIZE != 0 || frame_count == 0)
@@ -120,11 +100,11 @@ void frame_free(QWORD frame, DWORD frame_count)
     // Mark frames as free
     for (QWORD i = start_frame; i < start_frame + frame_count; i++)
     {
-        frame_bitmap[i / 8] &= ~(1 << (i % 8)); // Clear the bit
+        frame_bitmap[i / 8] &= ~(1 << (i % 8));
     }
 }
 
-// Check if frames are free
+
 BOOLEAN are_frames_free(QWORD start_frame, DWORD frame_count) 
 {
     if (frame_count == 0) 
@@ -137,7 +117,7 @@ BOOLEAN are_frames_free(QWORD start_frame, DWORD frame_count)
     for (QWORD i = start; i < start + frame_count; i++)
     {
         if (frame_bitmap[i / 8] & (1 << (i % 8))) 
-        { // Check if the frame is allocated
+        { 
             return FALSE;
         }
     }

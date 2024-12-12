@@ -51,16 +51,12 @@ void PrintMBR()
 }
 #pragma optimize("", on)
 
-void printInvalidCMD() {
-    /*char msg[] = "Not a valid command!";
-    int len = 0;
-    while (msg[len] != '\0') {
-        len++;
-    }
-    PutString(msg, len);*/
 
+void printInvalidCMD() 
+{
     LogSerialAndScreen("Invalid Command!\n");
 }
+
 
 void test_run()
 {
@@ -72,7 +68,6 @@ void test_run()
         LogSerialAndScreen("Testing true: %d\n", 1);
     }
 
-    // Call frame_alloc and check the result
     BOOLEAN result = frame_alloc(&newFrame, frameCount);
 
     LogSerialAndScreen("frame_alloc result: %d\n", result);
@@ -88,7 +83,7 @@ void test_run()
     QWORD newFrame1;
     DWORD frameCount1 = 2;
 
-    // Call frame_alloc and check the result
+
     BOOLEAN result1 = frame_alloc(&newFrame1, frameCount1);
 
     LogSerialAndScreen("frame_alloc result: %d\n", result1);
@@ -128,10 +123,12 @@ void test_run()
     LogSerialAndScreen("test_run was ran!\n");
 }
 
+
 void test_run_all()
 {
     LogSerialAndScreen("test_run_all was ran!\n");
 }
+
 
 void test_list()
 {
