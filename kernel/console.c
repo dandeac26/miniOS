@@ -1,6 +1,6 @@
 #include "console.h"
 #include "mem.h"
-
+#include "string.h"
 
 char screen_buffer[MAX_OFFSET];
 
@@ -57,21 +57,22 @@ void printInvalidCMD()
     LogSerialAndScreen("Invalid Command!\n");
 }
 
-
-void test_run(int argLen, char* arg)
+void run_page_test()
 {
-    if (argLen != 0) 
-    {
-        LogSerialAndScreen("%s\n", arg);
-    }
+    LogSerialAndScreen("Running Page Test\n");
+}
+
+void run_heap_test()
+{
+    LogSerialAndScreen("Running Heap Test\n");
+}
+
+void run_frame_test()
+{
+    LogSerialAndScreen("Running Frame Test\n");
 
     QWORD newFrame;
     DWORD frameCount = 1; // Number of frames to allocate
-
-    if (1 == 1) 
-    {
-        LogSerialAndScreen("Testing true: %d\n", 1);
-    }
 
     BOOLEAN result = frame_alloc(&newFrame, frameCount);
 
@@ -80,7 +81,7 @@ void test_run(int argLen, char* arg)
     {
         LogSerialAndScreen("Allocated frame at address: %X\n", newFrame);
     }
-    else 
+    else
     {
         LogSerialAndScreen("Failed to allocate frame.\n");
     }
@@ -115,7 +116,7 @@ void test_run(int argLen, char* arg)
     frame_free(newFrame1, frameCount1);
 
     BOOLEAN result_alloc_after_free = frame_alloc(&newFrame1, frameCount1);
-    
+
     if (result_alloc_after_free)
     {
         LogSerialAndScreen("Allocated recently freed frame1 at address: %X\n", newFrame1);
@@ -130,8 +131,34 @@ void test_run(int argLen, char* arg)
     frame_free(newFrame1, frameCount1);
 
     LogSerialAndScreen("Are frames free after frame_free? : %d\n", are_frames_free(newFrame1, frameCount1));
+}
 
-    LogSerialAndScreen("test_run was ran!\n");
+void test_run(int argLen,const char* arg)
+{
+    if (argLen != 0) 
+    {
+        
+        if (cl_strncmp(arg, "page", argLen) == 0)
+        {
+            run_page_test();
+        }
+        else if (cl_strncmp(arg, "heap", argLen) == 0)
+        {
+            run_heap_test();
+        }
+        else if (cl_strncmp(arg, "frame", argLen) == 0)
+        {
+            run_frame_test();
+        }
+        else
+        {
+            LogSerialAndScreen("test_run has no argument called: %s\n", arg);
+        }
+    }
+    else
+    {
+        LogSerialAndScreen("test_run requires one of the arguments: page, heap or frame\n");
+    }
 }
 
 
