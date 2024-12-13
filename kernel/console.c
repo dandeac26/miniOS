@@ -164,13 +164,15 @@ void test_run(int argLen,const char* arg)
 
 void test_run_all()
 {
-    LogSerialAndScreen("test_run_all was ran!\n");
+    run_frame_test();
+    run_page_test();
+    run_heap_test();
 }
 
 
 void test_list()
 {
-    LogSerialAndScreen("test_list was ran!\n");
+    LogSerialAndScreen("test_run has the following tests: page, heap or frame.\n");
 }
 
 
