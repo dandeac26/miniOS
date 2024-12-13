@@ -58,8 +58,13 @@ void printInvalidCMD()
 }
 
 
-void test_run()
+void test_run(int argLen, char* arg)
 {
+    if (argLen != 0) 
+    {
+        LogSerialAndScreen("%s\n", arg);
+    }
+
     QWORD newFrame;
     DWORD frameCount = 1; // Number of frames to allocate
 
@@ -120,6 +125,12 @@ void test_run()
         LogSerialAndScreen("Failed to allocate frame.\n");
     }
 
+    LogSerialAndScreen("Are frames free before frame_free? : %d\n", are_frames_free(newFrame1, frameCount1));
+
+    frame_free(newFrame1, frameCount1);
+
+    LogSerialAndScreen("Are frames free after frame_free? : %d\n", are_frames_free(newFrame1, frameCount1));
+
     LogSerialAndScreen("test_run was ran!\n");
 }
 
@@ -136,7 +147,7 @@ void test_list()
 }
 
 
-void RunCommand(int cmd)
+void RunCommand(int cmd, int argLen, char* arg)
 {
     switch (cmd)
     {
@@ -153,7 +164,7 @@ void RunCommand(int cmd)
             PrintMBR();
             break;
         case 5:
-            test_run();
+            test_run(argLen, arg);
             break;
         case 6:
             test_run_all();
@@ -205,5 +216,19 @@ void ParseCommand(char* Buffer, size_t size)
 
     Command[cmdLength] = '\0';
 
-    RunCommand(GetCommandNumber(Command, cmdLength));
+    size_t argLength = 0;
+    char Arg[MAX_COLUMNS];
+
+    if (Buffer[start++] == ' ')
+    {
+        while (start < size && is_value(Buffer[start]) && Buffer[start] != ' ')
+        {
+            Arg[argLength++] = Buffer[start];
+            start++;
+        }
+    } 
+
+    Arg[argLength] = '\0';
+
+    RunCommand(GetCommandNumber(Command, cmdLength), argLength, Arg);
 }

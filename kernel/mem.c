@@ -25,17 +25,7 @@ void init_frame_allocator()
         QWORD length = int15_e820_entries[i].Length / FRAME_SIZE;
         if (int15_e820_entries[i].Type == MemoryMapTypeUsableRAM) 
         {
-            
             total_frames = (start + length);
-            // Mark usable frames as free
-            //for (QWORD frame = start; frame < start + length; frame++) 
-            //{
-            //    if (usable_base == 0) // makes sure it sets usable base to the beginning of the usable free frames
-            //    {
-            //        usable_base = frame * FRAME_SIZE;
-            //    }
-            //    total_frames++;
-            //}
         }
         else
         {
