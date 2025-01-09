@@ -25,7 +25,6 @@ typedef struct _SCREEN
 }SCREEN, *PSCREEN;
 #pragma pack(pop)
 
-
 typedef struct _SCREEN_STATE
 {
     int col[TOTAL_MAX_LINES]; // for each line say where the cursor is on the columns

@@ -1,6 +1,6 @@
 #include "console.h"
 #include "mem.h"
-
+#include "string.h"
 
 char screen_buffer[MAX_OFFSET];
 
@@ -57,16 +57,22 @@ void printInvalidCMD()
     LogSerialAndScreen("Invalid Command!\n");
 }
 
-
-void test_run()
+void run_page_test()
 {
+    LogSerialAndScreen("Running Page Test\n");
+}
+
+void run_heap_test()
+{
+    LogSerialAndScreen("Running Heap Test\n");
+}
+
+void run_frame_test()
+{
+    LogSerialAndScreen("Running Frame Test\n");
+
     QWORD newFrame;
     DWORD frameCount = 1; // Number of frames to allocate
-
-    if (1 == 1) 
-    {
-        LogSerialAndScreen("Testing true: %d\n", 1);
-    }
 
     BOOLEAN result = frame_alloc(&newFrame, frameCount);
 
@@ -75,7 +81,7 @@ void test_run()
     {
         LogSerialAndScreen("Allocated frame at address: %X\n", newFrame);
     }
-    else 
+    else
     {
         LogSerialAndScreen("Failed to allocate frame.\n");
     }
@@ -110,7 +116,7 @@ void test_run()
     frame_free(newFrame1, frameCount1);
 
     BOOLEAN result_alloc_after_free = frame_alloc(&newFrame1, frameCount1);
-    
+
     if (result_alloc_after_free)
     {
         LogSerialAndScreen("Allocated recently freed frame1 at address: %X\n", newFrame1);
@@ -120,23 +126,57 @@ void test_run()
         LogSerialAndScreen("Failed to allocate frame.\n");
     }
 
-    LogSerialAndScreen("test_run was ran!\n");
+    LogSerialAndScreen("Are frames free before frame_free? : %d\n", are_frames_free(newFrame1, frameCount1));
+
+    frame_free(newFrame1, frameCount1);
+
+    LogSerialAndScreen("Are frames free after frame_free? : %d\n", are_frames_free(newFrame1, frameCount1));
+}
+
+void test_run(int argLen,const char* arg)
+{
+    if (argLen != 0) 
+    {
+        
+        if (cl_strncmp(arg, "page", argLen) == 0)
+        {
+            run_page_test();
+        }
+        else if (cl_strncmp(arg, "heap", argLen) == 0)
+        {
+            run_heap_test();
+        }
+        else if (cl_strncmp(arg, "frame", argLen) == 0)
+        {
+            run_frame_test();
+        }
+        else
+        {
+            LogSerialAndScreen("test_run has no argument called: %s\n", arg);
+        }
+    }
+    else
+    {
+        LogSerialAndScreen("test_run requires one of the arguments: page, heap or frame\n");
+    }
 }
 
 
 void test_run_all()
 {
-    LogSerialAndScreen("test_run_all was ran!\n");
+    run_frame_test();
+    run_page_test();
+    run_heap_test();
 }
 
 
 void test_list()
 {
-    LogSerialAndScreen("test_list was ran!\n");
+    LogSerialAndScreen("test_run has the following tests: page, heap or frame.\n");
 }
 
 
-void RunCommand(int cmd)
+void RunCommand(int cmd, int argLen, char* arg)
 {
     switch (cmd)
     {
@@ -153,7 +193,7 @@ void RunCommand(int cmd)
             PrintMBR();
             break;
         case 5:
-            test_run();
+            test_run(argLen, arg);
             break;
         case 6:
             test_run_all();
@@ -205,5 +245,19 @@ void ParseCommand(char* Buffer, size_t size)
 
     Command[cmdLength] = '\0';
 
-    RunCommand(GetCommandNumber(Command, cmdLength));
+    size_t argLength = 0;
+    char Arg[MAX_COLUMNS];
+
+    if (Buffer[start++] == ' ')
+    {
+        while (start < size && is_value(Buffer[start]) && Buffer[start] != ' ')
+        {
+            Arg[argLength++] = Buffer[start];
+            start++;
+        }
+    } 
+
+    Arg[argLength] = '\0';
+
+    RunCommand(GetCommandNumber(Command, cmdLength), argLength, Arg);
 }

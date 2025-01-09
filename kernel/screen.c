@@ -348,19 +348,6 @@ void PutCharStd(KEYCODE C)
     }    
     else if (C == ENTER_KEY || C == ENTER_KEY2)
     {
-
-        //if (CurrentScreen.row + 1 > MAX_LINES) {
-        //    DownScroll(1);
-        //    //PutString("this", 5);
-        //    //ScreenDisplay("this",10);
-        //    /*CurrentScreen.row--;*/
-        //}
-        //else
-        //{
-            //ScreenDisplay("other",10);
-           /* PutString("other", 6);*/
-        //LogSerialAndScreen("at row : %d", CurrentScreen.row);
-
         if (CurrentScreen.row + 2< MAX_LINES) 
         {
             
@@ -404,7 +391,6 @@ void PutCharStd(KEYCODE C)
                 CLIBuffer[CurrentScreen.line_size[initialrow]] = '\0';
                 ParseCommand(CLIBuffer, CurrentScreen.line_size[initialrow]);
 
-                /*CurrentScreen.line_size[BUFF_ROW] = 0;*/
                 CurrentScreen.line_size[BUFF_ROW] = 0;
             }
             else
@@ -419,20 +405,8 @@ void PutCharStd(KEYCODE C)
                 DownScroll(1);
             }
 
-            //DownScroll(1);
-            //DownScroll(1);
-           
         }
 
-
-           
-
-
-
-        //}
-           
-        
-        
     }
    
     else if (C == BACKSPACE_KEY && CurrentScreen.col[BUFF_ROW] > 0) 
@@ -663,8 +637,7 @@ void ScreenDisplay(char* logBuffer, int color)
 
             if (currentRow >= MAX_LINES)
             {
-                ClearScreen();
-                currentRow = 0; 
+                DownScroll(1); 
             }
         }
         else
@@ -675,7 +648,8 @@ void ScreenDisplay(char* logBuffer, int color)
             {
                 gVideo[pos].c = logBuffer[i];
                 gVideo[pos].color = color;
-                if(ConsoleMode == NORMAL_MODE) CurrentScreen.Buffer[(currentRow+CurrentScreen.view_offset)*MAX_COLUMNS + currentColumn] = logBuffer[i];
+                if(ConsoleMode == NORMAL_MODE)
+                    CurrentScreen.Buffer[(currentRow+CurrentScreen.view_offset)*MAX_COLUMNS + currentColumn] = logBuffer[i];
 
                 currentColumn++;
                 
@@ -688,8 +662,7 @@ void ScreenDisplay(char* logBuffer, int color)
                
                 if (currentRow >= MAX_LINES)
                 {
-                    ClearScreen(); 
-                    currentRow = 0; 
+                    DownScroll(1);
                 }
             }
         }

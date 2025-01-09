@@ -75,7 +75,7 @@ void KernelMain()
 
     InitScreen();
 
-    init_memory_allocators();
+    
 
     ClearScreen();
 
@@ -110,6 +110,7 @@ void KernelMain()
     initKB();
     IRQ_clear_mask(1);       // Enable KB
 
+    init_memory_allocators();
 
     //DetectATADevices();
     //__magic();
@@ -119,9 +120,9 @@ void KernelMain()
     }
     // Keyboard programming - DONE
 
-    // Implement a simple console - Done
+    // Implement a simple console - DONE
 
-    // TODO!!! read disk sectors using PIO mode ATA
+    // read disk sectors using PIO mode ATA - DONE
 
-    // TODO!!! Memory management: virtual, physical and heap memory allocators
+    //  Memory management: virtual, physical and heap memory allocators DOING
 }
